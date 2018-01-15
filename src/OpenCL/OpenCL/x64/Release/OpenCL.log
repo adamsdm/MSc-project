@@ -2,8 +2,8 @@
 OpenCL.cpp(36): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 OpenCL.cpp(37): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  1 of 416 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    8 functions had inline decision re-evaluated but remain unchanged
+  408 of 416 functions (98.1%) were compiled, the rest were copied from previous compilation.
+    5 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  OpenCL.vcxproj -> C:\Users\adam_\Desktop\Examensarbete\OpenCL\x64\Release\OpenCL.exe
+  OpenCL.vcxproj -> C:\Users\adam_\Desktop\MSc-project\src\OpenCL\x64\Release\OpenCL.exe
