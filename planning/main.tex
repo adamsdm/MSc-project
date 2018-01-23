@@ -22,7 +22,7 @@
 \maketitle
 
 \section{Background}
-The performance inclination of single-cored CPU's have during the last decades slowly started to decline. The main reason for this declination is due to the three walls:
+The performance inclination of single-cored CPU's have during the last decades slowly started to decline. The main reason for this declination is due to three "walls":
 
 \begin{itemize}
     \item Instruction Level parallelism wall --- not enough instruction level parallelism to keep the CPU busy
@@ -39,20 +39,20 @@ The performance inclination of single-cored CPU's have during the last decades s
     \label{fig:cpuStats}
 \end{figure}
 
-In 2007, Nvidia released their framework called CUDA which was developed specifically for GPGPU. Since then, more frameworks and platforms have emerged, most noticeably Open Computing Language (OpenCL), OpenGL Compute Shaders and Microsoft's version of compute shaders for DirectX, DirectCompute. This thesis will focus on evaluating GPGPU frameworks when running a suitable algorithm. Performance, portability and framework features will be evaluated with focus on the performance.
+In 2007, Nvidia released their framework called CUDA which was developed specifically for GPGPU. Since then, more frameworks and platforms have emerged, most noticeably Open Computing Language (OpenCL), OpenGL Compute Shaders and Microsoft's version of compute shaders for DirectX, DirectCompute. This thesis will focus on evaluating GPGPU frameworks when running a suitable algorithm. Performance, portability and features will be evaluated with focus on the performance. The thesis will be performed at the company MindRoad AB.
 
 \subsection{Algorithm}
 This section will discuss algorithms that are candidates for implementation and evaluation. A short description of the algorithm will be presented along with why the algorithm is suitable for a bench-marking application.
 
 \subsubsection{N-body}
-An N-Body simulation is an interesting implementation that can be well parallelized. A $N$ number of bodies are simulated where each body is affected by forces from all other bodies. The traditional implementation does thus run in the time complexity $O(n^2)$ but can be further optimized by using the Barnes-Hut algorithm which uses an quad/octree the reduce the time complexity to $O(n \ log \ n)$ \cite{barnes1986hierarchical}. An N-body simulation is often used in traditional GPU bench-marking tests, and it would be interesting to investigate this further when implemented using a GPGPU approach. The bench-marking can be performed in multiple ways, in a real-time simulation compare the frames-per-second (FPS) with the size of N. In a pre-computed simulation for a fixed amount of time-steps $t_n$, the bench-marking can be performed by comparing the computation time.
+An N-Body simulation is an interesting implementation that can be well parallelized. A $N$ number of bodies are simulated where each body is affected by forces from all other bodies. The traditional implementation does thus run in the time complexity $O(n^2)$ but can be further optimized by using the Barnes-Hut algorithm which uses an quad/octree the reduce the time complexity to $O(n \ log \ n)$ \cite{barnes1986hierarchical}. An N-body simulation is often used in traditional GPU bench-marking tests, and it would be interesting to investigate this further when implemented using a GPGPU approach. The bench-marking can be performed in multiple ways; in a real-time simulation and compare the frames-per-second (FPS) with the size of N. In a pre-computed simulation for a fixed amount of time-steps $t_n$, the bench-marking can be performed by comparing the computation time for the entire time-space.
 
 
 \subsubsection{Parallel Quick-Sort}
-The quick-sort algorithm is one of the most popular sorting algorithms. The sorting algorithm runs in the time complexity  $O(n \ log \ n)$ in average, and in the worst case  $O(n^2)$. Although a very popular sequential algorithm, it is not as popular in parallel applications due to its data dependent reorganization, some research has been done on the subject though and some parallel implementations exists \cite{sanders1997efficient}\cite{tsigas2003simple}\cite{manca2016cuda}. The bench-marking in this algorithm can be done by comparing the time consumption when using the same input data for all frameworks.
+The quick-sort algorithm is one of the most popular sorting algorithms. The sorting algorithm runs in the time complexity  $O(n \ log \ n)$ in average, and in the worst case  $O(n^2)$. Although a very popular sequential algorithm, it is not as popular in parallel applications due to its data dependent reorganization. Some research has been done on the subject though and parallel implementations exists \cite{sanders1997efficient}\cite{tsigas2003simple}\cite{manca2016cuda}. The bench-marking in this algorithm can be done by comparing the time consumption when sorting the same input data for all relevant frameworks.
 
 \subsubsection{Anti Aliasing using an Euclidean distance transform function}
-A problem in computer graphics is the inability to render sharp surface features when rendered up close. Sharp edges in textures often appear jagged when rendered up close. In 2007, Chris Green of Valve Software published a method of dealing with this problem by generating a distance function for a binary image \cite{green2007improved}. An example of C. Green's method applied to a  alpha-blended texture can be seen in figure \ref{fig:valve} \cite{green2007improved}. S. Gustavson et. al. later released an improved version of C. Green's idea, which uses an euclidean distance transform (DT) \cite{gustavson2011anti}\cite{gustavson20122d}. 
+A problem in computer graphics is the inability to render sharp surface features when rendered up close, sharp edges in textures often appear jagged when rendered up close. In 2007, Chris Green of Valve Software published a method of dealing with this problem by generating a distance function for a binary image \cite{green2007improved}. An example of C. Green's method applied to a  alpha-blended texture can be seen in figure \ref{fig:valve} \cite{green2007improved}. S. Gustavson et. al. later released an improved version of C. Green's idea, which uses an euclidean distance transform (DT) \cite{gustavson2011anti}\cite{gustavson20122d}. 
 
 
 \begin{figure}[!h]
@@ -78,7 +78,7 @@ A problem in computer graphics is the inability to render sharp surface features
     \label{fig:valve}
 \end{figure}
 
-V. Ilic et. al. later extended this into three-dimensios using a similar DT technique based on C. Green's technique \cite{ilic2015precise}. 
+V. Ilic et. al. later extended this into three-dimensions using a similar DT technique based on C. Green's technique \cite{ilic2015precise}. 
 
 The algorithm works on pixel level and is thus very well suitable for parallelization. It is also easy to use this algorithm for a bench-mark application by comparing the time consumption when running the algorithm on the different frameworks.
 
@@ -86,7 +86,7 @@ The algorithm works on pixel level and is thus very well suitable for paralleliz
 \section{Problem formulation}
 \begin{itemize}
     \item What is a suitable bench-marking algorithm?
-    \item What factors can be compared more than execution time?
+    \item What factors can be compared more than the execution time?
     \item How does a parallel implementation compare to a sequential implementation?
 \end{itemize}
 
