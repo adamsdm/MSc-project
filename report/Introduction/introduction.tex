@@ -1,0 +1,48 @@
+%!TEX root = ../thesis.tex
+%*******************************************************************************
+%*********************************** First Chapter *****************************
+%*******************************************************************************
+
+\chapter{Introduction}  %Title of the First Chapter
+This report is the summary of a M. Sc. in Media Technology and Engineering master thesis performed at Linköping University. The reports describes a qualitative comparative study between some of the most popular general-purpose computing on graphics processing units (GPGPU) frameworks that are in use today. The comparison will focus on the differences in GPGPU frameworks in terms of performance, framework features, portability, how easy it is to develop applications in the various frameworks as well as code complexity and understandability of the application developed. The GPGPU frameworks that is evaluated and compared in this study are CUDA, Open Computing Language (OpenCL) and DirectCompute. Along with the GPGPU frameworks mentioned, a algorithmic skeleton implementation is also implemented using SkePU, and compared to the GPGPU implementations when running different backends.
+
+
+%********************************** %First Section  **************************************
+\section{Motivation} \label{sec:IntroductionMotivation}
+During the last decades, the performance of central processing units (CPU) have kept a steady linear inclination. As the hardware components, CPU manufacturers have been apple to put more and more components such as micro-transistors on a single chip which is the reason why the development of more and more powerful CPU's have been developed. In a paper from 1965, Gordon Moore made the observation that the number of transistors in a integrated circuit doubles approximately every two years \cite{MooresLaw}. This observation has gotten the name \textit{Moore's Law} and today almost 50 years later, Moore's observation is still valid and applicable. The number of transistors are still increasing, but the performance of single-core CPU's have started to decline. The development has ran into three walls:
+
+\begin{itemize}
+    \item Instruction Level parallelism (ILP) wall --- There is not enough instruction level parallelism to keep the CPU busy
+    \item Memory wall --- A growing gap between the CPU speed and off-chip memory access
+    \item Power wall --- Increased clock rate needs more power which in turns leads to heat problems
+\end{itemize}
+
+These problems have started a trend among CPU manufacturers to create CPU's that have more than a single core on the chip, and the production of single-core CPU's have drastically decreased. Today all major chip manufacturers produce multicore CPU's and most devices use a multicore chip, and the number of cores available on chips seems to still be increasing. This multicore architecture is however not new technology, graphics processing unit's (GPU) have been using this technique for a long time, and modern GPU's may contain hundreds of cores. This has started a trend to not just use the computing power within a GPU to render graphics to the screen, but to use this massive amount of computing power for more general computing. This has led to the development of frameworks specifically intended for GPGPU purposes, and some of the most popular frameworks that are used today are CUDA developed by Nvidia, OpenCL maintained by the Khronos group and backed by a huge variety of companies, as well as DirectCompute developed by Microsoft as a part of DirectX. 
+
+Higher level skeleton programming libraries have also been developed, which aims to make the parallelization of a problem easier with the use of higher-order functions, skeletons. One such library is SkePU, which was originally developed by Johan Enmyren and Christoph Kessler at Linköping University \cite{enmyren2010skepu}. The major revision SkePU 2 was designed by August Ernstsson, Lu Li and Christoph Kessler and is today maintained by August Ernstsson.
+
+
+%********************************** %Second Section  *************************************
+\section{Aim} %Section - 1.2
+
+This paper aims to evaluate different GPGPU frameworks in terms of performance, portability, code complexity and features with less focus on the performance evaluation. A suitable benchmarking algorithm will be implemented in the various GPGPU frameworks, aswell as an implementation in a higher level skeleton library. The parallelized implementations will be evaluated against a sequential implementation of the same problem.
+
+
+%********************************** % Third Section  *************************************
+\section{Research questions}  %Section - 1.3 
+
+\begin{itemize}
+    \item What is a suitable bench-marking algorithm?
+    \item What factors can be compared more than the execution time?
+    \item How does a parallel implementation compare to a sequential implementation?
+\end{itemize}
+
+
+%********************************** % Fourth Section  *************************************
+\section{Delimitations}
+
+\nomenclature[]{}{}
+\nomenclature[z-OPC]{OpenCL}{Open Computing Language}
+\nomenclature[z-CPU]{CPU}{Central Processing Unit}
+\nomenclature[z-GPG]{GPGPU}{General-purpose Computing on Graphics Processing Units}
+\nomenclature[z-ILP]{ILP}{Instruction Level Parallelism}
