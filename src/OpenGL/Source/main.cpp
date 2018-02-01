@@ -8,6 +8,7 @@
 #include <fstream>
 #include <streambuf>
 #include <sstream>
+#include <stdlib.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -17,8 +18,8 @@
 
 
 // Window dimensions
-const unsigned int W = 800;
-const unsigned int H = 600;
+const unsigned int W = 1200;
+const unsigned int H = 800;
 
 
 // ********************************* //
@@ -87,10 +88,11 @@ int main() {
 	stbi_image_free(data);
 
 	// ********************************** //
-	// ********* Setup Triangle ********* //
+	// ********* Setup Particles ******** //
 	// ********************************** //
 
-	unsigned int MaxParticles = 10;
+	unsigned int MAX_PARTICLES = 1500000;
+	unsigned int MAX_DISTANCE = 300;
 	
 
 	// The VBO containing the 4 vertices of the particles.
@@ -138,30 +140,23 @@ int main() {
 		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
-	float g_particule_position_size_data[] = {
-		0.0f,  0.0f,  0.0f,
-		2.0f,  5.0f, -15.0f,
-		-1.5f, -2.2f, -2.5f,
-		-3.8f, -2.0f, -12.3f,
-		2.4f, -0.4f, -3.5f,
-		-1.7f,  3.0f, -7.5f,
-		1.3f, -2.0f, -2.5f,
-		1.5f,  2.0f, -2.5f,
-		1.5f,  0.2f, -1.5f,
-		-1.3f,  1.0f, -1.5f
-	};
-	static GLubyte g_particule_color_data[] = {
-		255.0f,  0.0,  0.0f,
-		0.0f,  255.0,  0.0f,
-		0.0f,  0.0,  255.0f,
-		255.0f,  0.0,  0.0f,
-		0.0f,  255.0,  0.0f,
-		0.0f,  0.0,  255.0f,
-		255.0f,  0.0,  0.0f,
-		0.0f,  255.0,  0.0f,
-		0.0f,  0.0,  255.0f,
-		255.0f,  0.0,  0.0f,
-	};
+	static GLfloat* g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
+	static GLubyte* g_particule_color_data = new GLubyte[MAX_PARTICLES * 4];
+
+	// Initialize random positions
+	for (int i = 0; i < MAX_PARTICLES; i++) {
+		float x = (rand() % (2* MAX_DISTANCE) - (float)MAX_DISTANCE);
+		float y = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
+		float z = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
+
+		g_particule_position_size_data[i * 3 + 0] = x;
+		g_particule_position_size_data[i * 3 + 1] = y;
+		g_particule_position_size_data[i * 3 + 2] = z;
+
+		g_particule_color_data[i * 3 + 0] = z;
+		g_particule_color_data[i * 3 + 1] = z;
+		g_particule_color_data[i * 3 + 2] = z;
+	}
 
 	// VAO
 	GLuint VertexArrayID;
@@ -169,7 +164,7 @@ int main() {
 	glBindVertexArray(VertexArrayID);
 
 
-	// VBO
+	// The VBO containing the quad/cube
 	GLuint billboard_vertex_buffer;
 	glGenBuffers(1, &billboard_vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
@@ -180,14 +175,14 @@ int main() {
 	glGenBuffers(1, &particles_position_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-	glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLfloat), g_particule_position_size_data, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), g_particule_position_size_data, GL_STREAM_DRAW);
 
 	// The VBO containing the colors of the particles
 	GLuint particles_color_buffer;
 	glGenBuffers(1, &particles_color_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-	glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLubyte), g_particule_color_data, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLubyte), g_particule_color_data, GL_STREAM_DRAW);
 
 
 
@@ -217,7 +212,7 @@ int main() {
 		// Setup matrices
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 1000.0f);
 
 		myShader.setMat4("view", view);
 		myShader.setMat4("projection", projection);
@@ -244,7 +239,7 @@ int main() {
 		glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
 
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 36, MaxParticles);
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 36, MAX_PARTICLES);
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
@@ -255,6 +250,9 @@ int main() {
 	}
 
 	// Clean up
+
+	delete[] g_particule_position_size_data;
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;

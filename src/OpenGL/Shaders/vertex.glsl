@@ -14,6 +14,7 @@ uniform mat4 projection;
 void main()
 {
     gl_Position = projection * view * model * vec4(aPos + particlePos, 1.0);
+
     TexCoord = aPos.xy + vec2(0.5, 0.5);
 	vParticlePos = particlePos;
 	vColor = color;
