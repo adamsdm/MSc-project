@@ -18,8 +18,8 @@
 
 
 // Window dimensions
-const unsigned int W = 1200;
-const unsigned int H = 800;
+unsigned int W = 1200;
+unsigned int H = 800;
 
 
 // ********************************* //
@@ -96,6 +96,8 @@ int main() {
 	// ********* Setup Particles ******** //
 	// ********************************** //
 
+	// TODO: Abstract this into a seperate class
+
 	unsigned int MAX_PARTICLES = 3500000;
 	unsigned int MAX_DISTANCE = 600;
 	
@@ -169,11 +171,13 @@ int main() {
 			printf("%f fps\n", 1.0f/deltaTime);
 			frameCount = 0;
 			lastTime += 1.0;
+
+			printf("%d\n", W);
 		}
 		
 		time = glfwGetTime();
 
-
+		
 
 		// Check for user inputs
 		processInput(window);
@@ -188,11 +192,13 @@ int main() {
 		
 		// Update view matrix
 		view = camera.GetViewMatrix();
+		projection = glm::perspective(glm::radians(camera.Zoom), (float) W / H, 0.1f, 4000.0f);
 
 		// Set uniforms
 		particleShader.setMat4("view", view);
 		particleShader.setMat4("projection", projection);
 		particleShader.setFloat("time", time);
+		particleShader.setFloat("deltaTime", deltaTime);
 
 
 
@@ -231,6 +237,8 @@ int main() {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	W = width;
+	H = height;
 	glViewport(0, 0, width, height);
 }
 void processInput(GLFWwindow *window) {

@@ -1,9 +1,58 @@
+% ----------------------------------------------------------------%
+% ---------------------------- THESIS ----------------------------%
+% ----------------------------------------------------------------%
+@mastersthesis{Torbjorn,
+  author       = {Sörman, Torbjörn}, 
+  title        = {Comparison of Technologies for General-Purpose Computing on Graphics Processing Units},
+  school       = {Linköping University},
+  year         = 2016,
+}
 
+
+% ----------------------------------------------------------------%
+% ------------------------ LECTURE NOTES -------------------------%
+% ----------------------------------------------------------------%
+@misc{Ingemar9b,
+  author        = {Ragnemalm, Ingemar},
+  title         = {Lecture notes in Information Coding / Computer Graphics, ISY, LiTH},
+  publisher     = {Linköping Universitet},
+  howpublished = {\url{http://computer-graphics.se/multicore}},
+  note = {Accessed: 2018-01-30}
+}
 
 % ----------------------------------------------------------------%
 % --------------------------- ARTICLES ---------------------------%
 % ----------------------------------------------------------------%
-
+@article{singh1995load,
+  title={Load balancing and data locality in adaptive hierarchical N-body methods: Barnes-Hut, fast multipole, and radiosity},
+  author={Singh, Jaswinder Pal and Holt, Chris and Totsuka, Takashi and Gupta, Anoop and Hennessy, John},
+  journal={Journal of Parallel and Distributed Computing},
+  volume={27},
+  number={2},
+  pages={118--141},
+  year={1995},
+  publisher={Elsevier}
+}
+@article{hoare1962quicksort,
+  title={Quicksort},
+  author={Hoare, Charles AR},
+  journal={The Computer Journal},
+  volume={5},
+  number={1},
+  pages={10--16},
+  year={1962},
+  publisher={Oxford University Press}
+}
+@article{nyland2007fast,
+  title={Fast n-body simulation with cuda},
+  author={Nyland, Lars and Harris, Mark and Prins, Jan and others},
+  journal={GPU gems},
+  volume={3},
+  number={1},
+  pages={677--696},
+  year={2007},
+  publisher={Addison Wesley}
+}
 @article{MooresLaw,
   title={Cramming more components onto integrated circuits},
   author={Present, I},
@@ -11,16 +60,33 @@
   volume={56},
   year={2000}
 }
-
-@inproceedings{thompson2002gpgpu,
-  title={Using modern graphics architectures for general-purpose computing: a framework and analysis},
-  author={Thompson, Chris J and Hahn, Sahngyun and Oskin, Mark},
-  booktitle={Microarchitecture, 2002.(MICRO-35). Proceedings. 35th Annual IEEE/ACM International Symposium on},
-  pages={306--317},
-  year={2002},
-  organization={IEEE}
+@article{karimi2010performance,
+  title={A performance comparison of CUDA and OpenCL},
+  author={Karimi, Kamran and Dickson, Neil G and Hamze, Firas},
+  journal={arXiv preprint arXiv:1005.2581},
+  year={2010}
 }
 
+@article{cederman2009gpu,
+  title={Gpu-quicksort: A practical quicksort algorithm for graphics processors},
+  author={Cederman, Daniel and Tsigas, Philippas},
+  journal={Journal of Experimental Algorithmics (JEA)},
+  volume={14},
+  pages={4},
+  year={2009},
+  publisher={ACM}
+}
+
+@article{jones20063d,
+  title={3D distance fields: A survey of techniques and applications},
+  author={Jones, Mark W and Baerentzen, J Andreas and Sramek, Milos},
+  journal={IEEE Transactions on visualization and Computer Graphics},
+  volume={12},
+  number={4},
+  pages={581--599},
+  year={2006},
+  publisher={IEEE}
+}
 @article{CUDAtoOpenCL,
   title={From CUDA to OpenCL: Towards a performance-portable solution for multi-platform GPU programming},
   author={Du, Peng and Weber, Rick and Luszczek, Piotr and Tomov, Stanimire and Peterson, Gregory and Dongarra, Jack},
@@ -31,6 +97,120 @@
   year={2012},
   publisher={Elsevier}
 }
+@article{gustavson2011anti,
+  title={Anti-aliased Euclidean distance transform},
+  author={Gustavson, Stefan and Strand, Robin},
+  journal={Pattern Recognition Letters},
+  volume={32},
+  number={2},
+  pages={252--257},
+  year={2011},
+  publisher={Elsevier}
+}
+@article{barnes1986hierarchical,
+  title={A hierarchical O (N log N) force-calculation algorithm},
+  author={Barnes, Josh and Hut, Piet},
+  journal={nature},
+  volume={324},
+  number={6096},
+  pages={446},
+  year={1986},
+  publisher={Nature Publishing Group}
+}
+
+% ----------------------------------------------------------------%
+% ----------------------------- BOOKS ----------------------------%
+% ----------------------------------------------------------------%
+@book{aarseth2003gravitational,
+  title={Gravitational N-body simulations: tools and algorithms},
+  author={Aarseth, Sverre J and Aarseth, Sverre Johannes},
+  year={2003},
+  publisher={Cambridge University Press}
+}
+@book{CPUStats,
+  title={Adapting to Thrive in a New Economy of Memory Abundance},
+  author={Kirk M. Bresniker, Sharad Singhal, R. Stanley Williams},
+  year={2015},
+}
+@book{greengard1988rapid,
+  title={The rapid evaluation of potential fields in particle systems},
+  author={Greengard, Leslie},
+  year={1988},
+  publisher={MIT press}
+}
+
+
+% ----------------------------------------------------------------%
+% ------------------ IN PROCEEDINGS/COLLECTION -------------------%
+% ----------------------------------------------------------------%
+
+@inproceedings{johansson2006accelerating,
+  title={Accelerating marching cubes with graphics hardware.},
+  author={Johansson, Gunnar and Carr, Hamish},
+  booktitle={CASCON},
+  volume={6},
+  pages={39},
+  year={2006},
+  organization={Citeseer}
+}
+
+@inproceedings{archirapatkave2011gpgpu,
+  title={GPGPU acceleration algorithm for medical image reconstruction},
+  author={Archirapatkave, Virasin and Sumilo, Hendra and See, Simon Chong Wee and Achalakul, Tiranee},
+  booktitle={Parallel and Distributed Processing with Applications (ISPA), 2011 IEEE 9th International Symposium on},
+  pages={41--46},
+  year={2011},
+  organization={IEEE}
+}
+@incollection{burtscher2011efficient,
+  title={An efficient CUDA implementation of the tree-based barnes hut n-body algorithm},
+  author={Burtscher, Martin and Pingali, Keshav},
+  booktitle={GPU computing Gems Emerald edition},
+  pages={75--92},
+  year={2011},
+  publisher={Elsevier}
+}
+@inproceedings{chen2009fast,
+  title={A fast and flexible sorting algorithm with cuda},
+  author={Chen, Shifu and Qin, Jing and Xie, Yongming and Zhao, Junping and Heng, Pheng-Ann},
+  booktitle={International Conference on Algorithms and Architectures for Parallel Processing},
+  pages={281--290},
+  year={2009},
+  organization={Springer}
+}
+@inproceedings{sanders1997efficient,
+  title={Efficient massively parallel quicksort},
+  author={Sanders, Peter and Hansch, Thomas},
+  booktitle={International Symposium on Solving Irregularly Structured Problems in Parallel},
+  pages={13--24},
+  year={1997},
+  organization={Springer}
+}
+
+@inproceedings{oliveira2011comparing,
+  title={Comparing CUDA, OpenCL and OpenGL implementations of the cardiac monodomain equations},
+  author={Oliveira, Rafael Sachetto and Rocha, Bernardo Martins and Amorim, Ronan Mendon{\c{c}}a and Campos, Fernando Otaviano and Meira, Wagner and Toledo, Elson Magalh{\~a}es and dos Santos, Rodrigo Weber},
+  booktitle={International Conference on Parallel Processing and Applied Mathematics},
+  pages={111--120},
+  year={2011},
+  organization={Springer}
+}
+@inproceedings{fang2011comprehensive,
+  title={A comprehensive performance comparison of CUDA and OpenCL},
+  author={Fang, Jianbin and Varbanescu, Ana Lucia and Sips, Henk},
+  booktitle={Parallel Processing (ICPP), 2011 International Conference on},
+  pages={216--225},
+  year={2011},
+  organization={IEEE}
+}
+@inproceedings{thompson2002gpgpu,
+  title={Using modern graphics architectures for general-purpose computing: a framework and analysis},
+  author={Thompson, Chris J and Hahn, Sahngyun and Oskin, Mark},
+  booktitle={Microarchitecture, 2002.(MICRO-35). Proceedings. 35th Annual IEEE/ACM International Symposium on},
+  pages={306--317},
+  year={2002},
+  organization={IEEE}
+}
 
 @inproceedings{enmyren2010skepu,
   title={SkePU: a multi-backend skeleton programming library for multi-GPU systems},
@@ -40,17 +220,42 @@
   year={2010},
   organization={ACM}
 }
-
-@book{CPUStats,
-  title={Adapting to Thrive in a New Economy of Memory Abundance},
-  author={Kirk M. Bresniker, Sharad Singhal, R. Stanley Williams},
-  year={2015},
+@inproceedings{green2007improved,
+  title={Improved alpha-tested magnification for vector textures and special effects},
+  author={Green, Chris},
+  booktitle={ACM SIGGRAPH 2007 courses},
+  pages={9--18},
+  year={2007},
+  organization={ACM}
 }
 
 % ----------------------------------------------------------------%
 % --------------------------- WEBSITES ---------------------------%
 % ----------------------------------------------------------------%
 
+@misc{OpenCLDocs,
+  title = {OpenGL Documentation},
+  howpublished = {\url{https://www.khronos.org/registry/OpenGL-Refpages/}},
+  note = {Accessed: 2018-02-02}
+}
+
+
+
+@misc{SYCL,
+  title = {C++ Single-source Heterogeneous Programming for OpenCL},
+  howpublished = {\url{https://www.khronos.org/sycl}},
+  note = {Accessed: 2018-01-30}
+}
+@misc{Thrust,
+  title = {Thrust :: CUDA Toolkit Documentation},
+  howpublished = {\url{http://docs.nvidia.com/cuda/thrust/index.html}},
+  note = {Accessed: 2018-01-30}
+}
+@misc{OpenACC,
+  title = {OpenACC standard version 2.5},
+  howpublished = {\url{https://www.openacc.org/sites/default/files/inline-files/OpenACC_2pt5_0.pdf}},
+  note = {Accessed: 2018-01-30}
+}
 
 @misc{LiUSkePU,
   title = {SkePU 2},
