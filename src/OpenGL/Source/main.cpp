@@ -75,10 +75,13 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load and generate the texture
 	int width, height, nrChannels;
-	unsigned char *data = stbi_load("../Resources/container.jpg", &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load("../Resources/star.png", &width, &height, &nrChannels, 0);
+
+	
+
 	if (data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
@@ -87,58 +90,23 @@ int main() {
 	}
 	stbi_image_free(data);
 
+
+
 	// ********************************** //
 	// ********* Setup Particles ******** //
 	// ********************************** //
 
-	unsigned int MAX_PARTICLES = 1500000;
-	unsigned int MAX_DISTANCE = 300;
+	unsigned int MAX_PARTICLES = 3500000;
+	unsigned int MAX_DISTANCE = 600;
 	
 
 	// The VBO containing the 4 vertices of the particles.
 	// Thanks to instancing, they will be shared by all particles.
 	static const GLfloat g_vertex_buffer_data[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,
 	};
 	static GLfloat* g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
 	static GLubyte* g_particule_color_data = new GLubyte[MAX_PARTICLES * 4];
@@ -153,10 +121,11 @@ int main() {
 		g_particule_position_size_data[i * 3 + 1] = y;
 		g_particule_position_size_data[i * 3 + 2] = z;
 
-		g_particule_color_data[i * 3 + 0] = z;
-		g_particule_color_data[i * 3 + 1] = z;
-		g_particule_color_data[i * 3 + 2] = z;
+		g_particule_color_data[i * 3 + 0] = ((y + MAX_DISTANCE) / (2 * MAX_DISTANCE)) * 255.0f;
+		g_particule_color_data[i * 3 + 1] = ((y + MAX_DISTANCE) / (2 * MAX_DISTANCE)) * 255.0f;
+		g_particule_color_data[i * 3 + 2] = ((y + MAX_DISTANCE) / (2 * MAX_DISTANCE)) * 255.0f;
 	}
+	
 
 	// VAO
 	GLuint VertexArrayID;
@@ -192,18 +161,34 @@ int main() {
 	// ********************************* //
 	
 	float time = glfwGetTime();
+	float lastTime = glfwGetTime();
+	int frameCount = 0;
 
 	while (!glfwWindowShouldClose(window))
 	{
 		// Update time
 		deltaTime = glfwGetTime() - time;
+		frameCount++;
+
+		double currentTime = glfwGetTime();
+		frameCount++;
+		if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
+											 // printf and reset timer
+			//printf("%f ms/frame\n", 1000.0 / double(frameCount));
+			printf("%f fps\n", 1.0f/deltaTime);
+			frameCount = 0;
+			lastTime += 1.0;
+		}
+		
 		time = glfwGetTime();
+
+
 
 		// Check for user inputs
 		processInput(window);
 
 		// render clear colour
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Start drawing
@@ -212,7 +197,7 @@ int main() {
 		// Setup matrices
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 1000.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 4000.0f);
 
 		myShader.setMat4("view", view);
 		myShader.setMat4("projection", projection);
@@ -222,7 +207,7 @@ int main() {
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0,  (void*)0 );
 
 		// 2nd attribute buffer : positions of particles' centers
 		glEnableVertexAttribArray(1);
@@ -239,7 +224,7 @@ int main() {
 		glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
 
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 36, MAX_PARTICLES);
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, MAX_PARTICLES);
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
