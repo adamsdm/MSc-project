@@ -1,7 +1,6 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 particlePos;
-layout(location = 2) in vec3 color;
 
 out vec2 TexCoord;
 out vec3 vParticlePos;
@@ -29,5 +28,4 @@ void main()
 
     TexCoord = aPos.xy + vec2(0.5, 0.5);
 	vParticlePos = particlePos;
-	vColor = color;
 }

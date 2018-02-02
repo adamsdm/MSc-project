@@ -109,7 +109,6 @@ int main() {
 		0.5f, 0.5f, 0.0f,
 	};
 	static GLfloat* g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
-	static GLubyte* g_particule_color_data = new GLubyte[MAX_PARTICLES * 4];
 
 	// Initialize random positions
 	for (int i = 0; i < MAX_PARTICLES; i++) {
@@ -120,10 +119,6 @@ int main() {
 		g_particule_position_size_data[i * 3 + 0] = x;
 		g_particule_position_size_data[i * 3 + 1] = y;
 		g_particule_position_size_data[i * 3 + 2] = z;
-
-		g_particule_color_data[i * 3 + 0] = ((y + MAX_DISTANCE) / (2 * MAX_DISTANCE)) * 255.0f;
-		g_particule_color_data[i * 3 + 1] = ((y + MAX_DISTANCE) / (2 * MAX_DISTANCE)) * 255.0f;
-		g_particule_color_data[i * 3 + 2] = ((y + MAX_DISTANCE) / (2 * MAX_DISTANCE)) * 255.0f;
 	}
 	
 
@@ -146,15 +141,6 @@ int main() {
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), g_particule_position_size_data, GL_STREAM_DRAW);
 
-	// The VBO containing the colors of the particles
-	GLuint particles_color_buffer;
-	glGenBuffers(1, &particles_color_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLubyte), g_particule_color_data, GL_STREAM_DRAW);
-
-
-
 
 	// ********************************* //
 	// *********** Main Loop *********** //
@@ -170,6 +156,7 @@ int main() {
 		deltaTime = glfwGetTime() - time;
 		frameCount++;
 
+		// FPS Counter
 		double currentTime = glfwGetTime();
 		frameCount++;
 		if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
@@ -214,21 +201,15 @@ int main() {
 		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-		// 3rd attribute buffer : particles' colors
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-		glVertexAttribPointer(2, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0);
 
 		glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
 		glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
-		glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
 
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, MAX_PARTICLES);
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
