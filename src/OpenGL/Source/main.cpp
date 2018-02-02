@@ -60,7 +60,7 @@ int main() {
 	// ********* Setup Shaders ********* //
 	// ********************************* //
 
-	Shader myShader("../Shaders/vertex.glsl", "../Shaders/fragment.glsl");
+	Shader particleShader("../Shaders/vertex.glsl", "../Shaders/fragment.glsl");
 
 	// ********************************* //
 	// ********* Setup Textures ******** //
@@ -110,9 +110,9 @@ int main() {
 	};
 	static GLfloat* g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
 
-	// Initialize random positions
+	// Populate initial positions
 	for (int i = 0; i < MAX_PARTICLES; i++) {
-		float x = (rand() % (2* MAX_DISTANCE) - (float)MAX_DISTANCE);
+		float x = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
 		float y = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
 		float z = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
 
@@ -150,6 +150,10 @@ int main() {
 	float lastTime = glfwGetTime();
 	int frameCount = 0;
 
+	// Matrices
+	glm::mat4 view;
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 4000.0f);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// Update time
@@ -179,18 +183,20 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Start drawing
-		myShader.use();
+		particleShader.use();
 		
-		// Setup matrices
-		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 4000.0f);
+		
+		// Update view matrix
+		view = camera.GetViewMatrix();
 
-		myShader.setMat4("view", view);
-		myShader.setMat4("projection", projection);
-		myShader.setFloat("time", time);
-		myShader.setMat4("model", model);
+		// Set uniforms
+		particleShader.setMat4("view", view);
+		particleShader.setMat4("projection", projection);
+		particleShader.setFloat("time", time);
 
+
+
+		// Setup attributes for the particle shader
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
