@@ -61,7 +61,7 @@ int main() {
 	// ********* Setup Shaders ********* //
 	// ********************************* //
 
-	Shader particleShader("../Shaders/vertex.glsl", "../Shaders/fragment.glsl");
+	Shader particleShader("../Shaders/particleSystemVert.glsl", "../Shaders/particleSystemFrag.glsl");
 
 	// ********************************* //
 	// ********* Setup Textures ******** //
@@ -99,6 +99,15 @@ int main() {
 
 	ParticleSystem particlesystem(1000);
 
+	float minx, maxx;
+	float miny, maxy;
+	float minz, maxz;
+
+	particlesystem.getBounds(minx, maxx, miny, maxy, minz, maxz);
+
+	std::cout << "x: [" << minx << ", " << maxx << ']'
+		<< "\ty: [" << miny << ", " << maxy << ']'
+		<< "\tz: [" << minz << ", " << maxz << ']' << std::endl;
 
 	// ********************************* //
 	// *********** Main Loop *********** //
@@ -156,6 +165,7 @@ int main() {
 		particleShader.setFloat("time", time);
 		particleShader.setFloat("deltaTime", deltaTime);
 
+		
 		// Render particle system
 		particlesystem.render(deltaTime);
 

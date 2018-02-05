@@ -6,6 +6,7 @@
 #include <math.h>
 #include <amp_math.h>
 #include <glm/glm.hpp>
+#include <limits>
 
 #define M_PI	3.14159265359
 #define SOFTENING 1e-9f
@@ -40,5 +41,6 @@ public:
 	~ParticleSystem();
 	
 	void render(float dt);
+	void ParticleSystem::getBounds(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
 
 };

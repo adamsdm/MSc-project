@@ -86,6 +86,42 @@ ParticleSystem::~ParticleSystem(){
 	delete[] ParticlesContainer;
 }
 
+void ParticleSystem::getBounds(float &_minx, float &_maxx, float &_miny, float &_maxy, float &_minz, float &_maxz){
+
+
+	float minx = 99999999.0f;
+	float maxx = -99999999.0f;
+	
+	float miny = 99999999.0f;
+	float maxy = -99999999.0f;
+
+	float minz = 99999999.0f;
+	float maxz = -99999999.0f;
+
+	for (int i = 0; i < MAX_PARTICLES; i++){
+		glm::vec3 pos = ParticlesContainer[i].pos;
+		
+		minx = std::min(pos.x, minx);
+		maxx = std::max(pos.x, maxx);
+
+		miny = std::min(pos.y, miny);
+		maxy = std::max(pos.y, maxy);
+
+		minz = std::min(pos.z, minz);
+		maxz = std::max(pos.z, maxz);
+	}
+
+
+	_minx = minx;
+	_maxx = maxx;
+
+	_miny = miny;
+	_maxy = maxy;
+
+	_minz = minz;
+	_maxz = maxz;
+	
+}
 
 // These functions should launch the kernels for the respective framework
 void ParticleSystem::updateForces(float dt){
