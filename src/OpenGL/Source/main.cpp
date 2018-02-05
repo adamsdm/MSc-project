@@ -18,6 +18,8 @@
 #include "ParticleSystem.h"
 
 
+#define RENDER_BOUNDS
+
 // Window dimensions
 unsigned int W = 1200;
 unsigned int H = 800;
@@ -100,16 +102,6 @@ int main() {
 
 	ParticleSystem particlesystem(1000);
 
-	float minx, maxx;
-	float miny, maxy;
-	float minz, maxz;
-
-	particlesystem.getBounds(minx, maxx, miny, maxy, minz, maxz);
-
-	std::cout << "x: [" << minx << ", " << maxx << ']'
-		<< "\ty: [" << miny << ", " << maxy << ']'
-		<< "\tz: [" << minz << ", " << maxz << ']' << std::endl;
-
 	// ********************************* //
 	// *********** Main Loop *********** //
 	// ********************************* //
@@ -137,8 +129,6 @@ int main() {
 			printf("%f fps\n", 1.0f/deltaTime);
 			frameCount = 0;
 			lastTime += 1.0;
-
-			printf("%d\n", W);
 		}
 		
 		time = glfwGetTime();
@@ -168,16 +158,16 @@ int main() {
 
 		
 		// Render particle system
-		
 		particlesystem.render(deltaTime);
 
-		// Render box
+#ifdef RENDER_BOUNDS
+		// Render bounding box
 		boxShader.use();
 		boxShader.setMat4("view", view);
 		boxShader.setMat4("projection", projection);
 
 		particlesystem.renderBounds();
-
+#endif
 		
 
 

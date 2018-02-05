@@ -31,8 +31,21 @@ private:
 
 	Particle* ParticlesContainer;
 
+	/**
+	* Inits the positions and velocities of the particles.
+	*/
 	void initParticleSystem();
+
+	/**
+	* Sequentially calculates the forces.
+	* @param dt delta time.
+	*/
 	void updateForces(float dt);
+
+	/**
+	* Sequentially updates the positions.
+	* @param dt delta time.
+	*/
 	void updatePositions(float dt);
 
 public:
@@ -40,8 +53,20 @@ public:
 	ParticleSystem(const unsigned int _MAX_PARTICLES = 1000);
 	~ParticleSystem();
 	
+	/**
+	* Renders the particles instanced
+	* @param dt delta time.
+	*/
 	void render(float dt);
+
+	/**
+	* Renders bounding box
+	*/
 	void renderBounds();
+
+	/**
+	* Sequentially calculates the bounds of the particles.
+	*/
 	void ParticleSystem::getBounds(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
 
 };

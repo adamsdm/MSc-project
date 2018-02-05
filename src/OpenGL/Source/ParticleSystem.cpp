@@ -233,6 +233,7 @@ void ParticleSystem::renderBounds(){
 		maxx, maxy, maxz,
 		minx, maxy, minz,
 	};
+	
 
 	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
