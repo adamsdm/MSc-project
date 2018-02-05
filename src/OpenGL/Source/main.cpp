@@ -62,6 +62,7 @@ int main() {
 	// ********************************* //
 
 	Shader particleShader("../Shaders/particleSystemVert.glsl", "../Shaders/particleSystemFrag.glsl");
+	Shader boxShader("../Shaders/boxVert.glsl", "../Shaders/boxFrag.glsl");
 
 	// ********************************* //
 	// ********* Setup Textures ******** //
@@ -167,7 +168,18 @@ int main() {
 
 		
 		// Render particle system
+		
 		particlesystem.render(deltaTime);
+
+		// Render box
+		boxShader.use();
+		boxShader.setMat4("view", view);
+		boxShader.setMat4("projection", projection);
+
+		particlesystem.renderBounds();
+
+		
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

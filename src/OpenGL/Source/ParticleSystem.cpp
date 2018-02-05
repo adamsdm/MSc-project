@@ -182,6 +182,76 @@ void ParticleSystem::updatePositions(float dt){
 	}
 }
 
+void ParticleSystem::renderBounds(){
+	float minx, maxx;
+	float miny, maxy;
+	float minz, maxz;
+
+	getBounds(minx, maxx, miny, maxy, minz, maxz);
+
+	// Bad way.. :/
+	float vertices[] = {
+		minx, miny, minz,
+		maxx, miny, minz,
+		maxx, maxy, minz,
+		maxx, maxy, minz,
+		minx, maxy, minz,
+		minx, miny, minz,
+
+		minx, miny, maxz,
+		maxx, miny, maxz,
+		maxx, maxy, maxz,
+		maxx, maxy, maxz,
+		minx, maxy, maxz,
+		minx, miny, maxz,
+
+		maxx, maxy, maxz,
+		minx, maxy, minz,
+		minx, miny, minz,
+		minx, miny, minz,
+		minx, miny, maxz,
+		minx, maxy, maxz, 
+
+		maxx, maxy, maxz, 
+		maxx, maxy, minz,
+		maxx, miny, minz,
+		maxx, miny, minz,
+		maxx, miny, maxz,
+		maxx, maxy, maxz,
+
+		minx, miny, minz,
+		maxx, miny, minz,
+		maxx, miny, maxz,
+		maxx, miny, maxz,
+		minx, miny, maxz,
+		minx, miny, minz,
+
+		minx, maxy, minz,
+		maxx, maxy, minz,
+		maxx, maxy, maxz,
+		maxx, maxy, maxz,
+		maxx, maxy, maxz,
+		minx, maxy, minz,
+	};
+
+	unsigned int VBO, VAO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// position attribute
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
 void ParticleSystem::render(float dt){
 	
 	updateForces(dt);
@@ -206,7 +276,8 @@ void ParticleSystem::render(float dt){
 	glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
 	glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
 
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
+	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, MAX_PARTICLES);
 
 	glDisableVertexAttribArray(0);
