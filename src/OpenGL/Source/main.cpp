@@ -15,6 +15,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Application.h"
+#include "ParticleSystem.h"
 
 
 // Window dimensions
@@ -26,7 +27,7 @@ unsigned int H = 800;
 // ************ Camera ************* //
 // ********************************* //
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 600.0f));
 
 float lastX = W / 2.0f;
 float lastY = H / 2.0f;
@@ -96,52 +97,7 @@ int main() {
 	// ********* Setup Particles ******** //
 	// ********************************** //
 
-	// TODO: Abstract this into a seperate class
-
-	unsigned int MAX_PARTICLES = 3500000;
-	unsigned int MAX_DISTANCE = 600;
-	
-
-	// The VBO containing the 4 vertices of the particles.
-	// Thanks to instancing, they will be shared by all particles.
-	static const GLfloat g_vertex_buffer_data[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-	};
-	static GLfloat* g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
-
-	// Populate initial positions
-	for (int i = 0; i < MAX_PARTICLES; i++) {
-		float x = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
-		float y = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
-		float z = (rand() % (2 * MAX_DISTANCE) - (float)MAX_DISTANCE);
-
-		g_particule_position_size_data[i * 3 + 0] = x;
-		g_particule_position_size_data[i * 3 + 1] = y;
-		g_particule_position_size_data[i * 3 + 2] = z;
-	}
-	
-
-	// VAO
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-
-
-	// The VBO containing the quad/cube
-	GLuint billboard_vertex_buffer;
-	glGenBuffers(1, &billboard_vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-	// The VBO containing the positions and sizes of the particles
-	GLuint particles_position_buffer;
-	glGenBuffers(1, &particles_position_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), g_particule_position_size_data, GL_STREAM_DRAW);
+	ParticleSystem particlesystem(1000);
 
 
 	// ********************************* //
@@ -200,36 +156,14 @@ int main() {
 		particleShader.setFloat("time", time);
 		particleShader.setFloat("deltaTime", deltaTime);
 
-
-
-		// Setup attributes for the particle shader
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0,  (void*)0 );
-
-		// 2nd attribute buffer : positions of particles' centers
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-
-		glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
-		glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
-
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, MAX_PARTICLES);
-		
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
+		// Render particle system
+		particlesystem.render(deltaTime);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	// Clean up
-
-	delete[] g_particule_position_size_data;
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
