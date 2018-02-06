@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "Application.h"
 #include "ParticleSystem.h"
+#include "CudaCode.cuh"
 
 
 #define RENDER_BOUNDS
@@ -46,6 +47,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 
 int main() {
+
+	temp::CudaHello();
 
 	// Create a window
 	GLFWwindow* window = App::initialize(W, H);
