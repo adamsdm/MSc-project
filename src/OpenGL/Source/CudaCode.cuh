@@ -10,7 +10,8 @@
 
 #define SIZE	1024
 
+
 namespace temp {
-	void CudaHello();
+	void CudaTestStruct();
 }
 

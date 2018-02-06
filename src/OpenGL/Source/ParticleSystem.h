@@ -12,10 +12,13 @@
 #define SOFTENING 1e-9f
 
 
-struct Particle{
-	glm::vec3 pos, speed;
+typedef struct
+{
+	float px, py, pz;
+	float vx, vy, vz;
 	float weight;
-};
+} Particle;
+
 
 class ParticleSystem  {
 private:

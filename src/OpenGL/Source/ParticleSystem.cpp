@@ -35,7 +35,6 @@ ParticleSystem::ParticleSystem(static const unsigned int _MAX_PARTICLES) {
 	
 }
 
-
 void ParticleSystem::initParticleSystem(){
 
 	float phi, r, x, y, z;
@@ -57,29 +56,32 @@ void ParticleSystem::initParticleSystem(){
 
 		// Setup particle
 		p.weight = 1.0f;
-		p.pos = glm::vec3(x, y, z);
+		p.px = x;
+		p.py = y;
+		p.pz = z;
 
 		if (i % 2 == 0){
-			p.pos.x += 200;
-			p.speed = 4.0f * glm::cross(-p.pos, glm::vec3(0.0, 0.0, 1.0));
+			p.px += 200;
 		}
 		else {
-			p.pos.x -= 200;
-			p.speed = 4.0f * glm::cross(-p.pos, glm::vec3(0.0, 0.0, 1.0));
+			p.px -= 200;
 		}
 
+		glm::vec3 speed = 4.0f * glm::cross(-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 		
+		p.vx = speed.x;
+		p.vy = speed.y;
+		p.vz = speed.z;
 			
 
 		ParticlesContainer[i] = p;
 
 		// Setup position in buffer
-		g_particule_position_size_data[i * 3 + 0] = p.pos.x;
-		g_particule_position_size_data[i * 3 + 1] = p.pos.y;
-		g_particule_position_size_data[i * 3 + 2] = p.pos.z;
+		g_particule_position_size_data[i * 3 + 0] = p.px;
+		g_particule_position_size_data[i * 3 + 1] = p.py;
+		g_particule_position_size_data[i * 3 + 2] = p.pz;
 	}
 }
-
 
 ParticleSystem::~ParticleSystem(){
 	delete[] g_particule_position_size_data;
@@ -99,7 +101,7 @@ void ParticleSystem::getBounds(float &_minx, float &_maxx, float &_miny, float &
 	float maxz = -99999999.0f;
 
 	for (int i = 0; i < MAX_PARTICLES; i++){
-		glm::vec3 pos = ParticlesContainer[i].pos;
+		glm::vec3 pos = glm::vec3(ParticlesContainer[i].px, ParticlesContainer[i].py, ParticlesContainer[i].pz);
 		
 		minx = std::min(pos.x, minx);
 		maxx = std::max(pos.x, maxx);
@@ -121,65 +123,6 @@ void ParticleSystem::getBounds(float &_minx, float &_maxx, float &_miny, float &
 	_minz = minz;
 	_maxz = maxz;
 	
-}
-
-// These functions should launch the kernels for the respective framework
-void ParticleSystem::updateForces(float dt){
-
-
-
-	for (int i = 0; i < MAX_PARTICLES; i++) {
-		
-		Particle pi = ParticlesContainer[i];
-		float Fx = 0; float Fy = 0; float Fz = 0;
-
-		for (int j = 0; j < MAX_PARTICLES; j++){
-
-			if (i != j){
-				Particle pj = ParticlesContainer[j];
-
-				float dx = pj.pos.x - pi.pos.x;
-				float dy = pj.pos.y - pi.pos.y;
-				float dz = pj.pos.z - pi.pos.z;
-
-				float dist = sqrt(dx*dx + dy*dy + dz*dz);
-				
-				// Fij = (G*mi*mj * (pj.pos - pi.pos)) / (||)
-				float F = (9.82 * pi.weight * pj.weight) / (dist + SOFTENING * SOFTENING);
-
-				Fx += F * dx / dist;
-				Fy += F * dy / dist;
-				Fz += F * dz / dist;
-			}
-		}
-
-	
-		// Update speed
-		pi.speed.x += Fx;
-		pi.speed.y += Fy;
-		pi.speed.z += Fz;
-
-		ParticlesContainer[i] = pi;
-	}
-
-}
-
-void ParticleSystem::updatePositions(float dt){
-
-	float simspeed = 0.01f;
-		
-	for (int i = 0; i < MAX_PARTICLES; i++){
-		Particle p = ParticlesContainer[i];
-
-		p.pos = glm::vec3(p.pos.x + p.speed.x * simspeed*dt, p.pos.y + p.speed.y * simspeed*dt, p.pos.z + p.speed.z*simspeed*dt);
-
-		ParticlesContainer[i] = p;
-
-		// Update position buffer
-		g_particule_position_size_data[i * 3 + 0] = p.pos.x;
-		g_particule_position_size_data[i * 3 + 1] = p.pos.y;
-		g_particule_position_size_data[i * 3 + 2] = p.pos.z;
-	}
 }
 
 void ParticleSystem::renderBounds(){
@@ -263,11 +206,13 @@ void ParticleSystem::render(float dt){
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
 	glBufferSubData(GL_ARRAY_BUFFER, 0, MAX_PARTICLES * sizeof(GLfloat) * 4, g_particule_position_size_data);
 
+	
 	// Setup attributes for the particle shader
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	
 
 	// 2nd attribute buffer : positions of particles' centers
 	glEnableVertexAttribArray(1);
@@ -284,3 +229,68 @@ void ParticleSystem::render(float dt){
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 }
+
+
+
+// These functions should launch the kernels for the respective framework
+void ParticleSystem::updateForces(float dt){
+
+
+
+	for (int i = 0; i < MAX_PARTICLES; i++) {
+
+		Particle pi = ParticlesContainer[i];
+		float Fx = 0; float Fy = 0; float Fz = 0;
+
+		for (int j = 0; j < MAX_PARTICLES; j++){
+
+			if (i != j){
+				Particle pj = ParticlesContainer[j];
+
+				float dx = pj.px - pi.px;
+				float dy = pj.py - pi.py;
+				float dz = pj.pz - pi.pz;
+
+				float dist = sqrt(dx*dx + dy*dy + dz*dz);
+
+				float F = (9.82 * pi.weight * pj.weight) / (dist + SOFTENING * SOFTENING);
+
+				Fx += F * dx / dist;
+				Fy += F * dy / dist;
+				Fz += F * dz / dist;
+			}
+		}
+
+
+		// Update speed
+		pi.vx += Fx;
+		pi.vy += Fy;
+		pi.vz += Fz;
+
+		ParticlesContainer[i] = pi;
+	}
+
+}
+
+void ParticleSystem::updatePositions(float dt){
+
+	float simspeed = 0.01f;
+
+
+	for (int i = 0; i < MAX_PARTICLES; i++){
+		Particle p = ParticlesContainer[i];
+
+		p.px = p.px + p.vx * simspeed*dt;
+		p.py = p.py + p.vy * simspeed*dt;
+		p.pz = p.pz + p.vz * simspeed*dt;
+
+
+		ParticlesContainer[i] = p;
+
+		// Update position buffer
+		g_particule_position_size_data[i * 3 + 0] = p.px;
+		g_particule_position_size_data[i * 3 + 1] = p.py;
+		g_particule_position_size_data[i * 3 + 2] = p.pz;
+	}
+}
+

@@ -48,7 +48,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main() {
 
-	temp::CudaHello();
+	temp::CudaTestStruct();
 
 	// Create a window
 	GLFWwindow* window = App::initialize(W, H);
