@@ -27,6 +27,7 @@ typedef struct
 {
 	float px, py, pz;
 	float vx, vy, vz;
+	float Fx, Fy, Fz;
 	float weight;
 } Particle;
 
@@ -40,9 +41,11 @@ private:
 	GLuint VertexArrayID;
 	GLuint billboard_vertex_buffer;
 	GLuint particles_position_buffer;
+	GLuint particles_color_buffer;
 
 	// Buffer data
 	GLfloat* g_particule_position_size_data;
+	GLfloat* g_particule_color_data;
 	static const GLfloat g_vertex_buffer_data[];
 
 	Particle* ParticlesContainer;

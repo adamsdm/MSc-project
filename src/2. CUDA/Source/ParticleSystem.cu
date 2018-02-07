@@ -12,7 +12,8 @@ ParticleSystem::ParticleSystem(static const unsigned int _MAX_PARTICLES) {
 		0.5f, 0.5f, 0.0f,
 	};
 
-	g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
+	g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 3];
+	g_particule_color_data = new GLfloat[MAX_PARTICLES * 3];
 
 	ParticlesContainer = new Particle[_MAX_PARTICLES];
 	initParticleSystem();
@@ -31,6 +32,11 @@ ParticleSystem::ParticleSystem(static const unsigned int _MAX_PARTICLES) {
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 3 * sizeof(GLfloat), g_particule_position_size_data, GL_STREAM_DRAW);
+
+	// The VBO containing the colors of the particles
+	glGenBuffers(1, &particles_color_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 3 * sizeof(GLfloat), g_particule_color_data, GL_STREAM_DRAW);
 
 }
 
@@ -80,7 +86,16 @@ void ParticleSystem::initParticleSystem(){
 		g_particule_position_size_data[i * 3 + 0] = p.px;
 		g_particule_position_size_data[i * 3 + 1] = p.py;
 		g_particule_position_size_data[i * 3 + 2] = p.pz;
+
+		g_particule_color_data[i * 3 + 0] = 255.0f;
+		g_particule_color_data[i * 3 + 1] = 255.0f;
+		g_particule_color_data[i * 3 + 2] = 255.0f;
+		
 	}
+
+	g_particule_color_data[(MAX_PARTICLES-1) * 3 + 0] = 255.0f;
+	g_particule_color_data[(MAX_PARTICLES-1) * 3 + 1] = 0.0f;
+	g_particule_color_data[(MAX_PARTICLES-1) * 3 + 2] = 0.0f;
 }
 
 ParticleSystem::~ParticleSystem(){
@@ -201,10 +216,16 @@ void ParticleSystem::render(float dt){
 	
 	CUDAStep(dt);
 
-
+	// Update buffer data
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
 	glBufferSubData(GL_ARRAY_BUFFER, 0, MAX_PARTICLES * 3 * sizeof(GLfloat), g_particule_position_size_data);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+	glBufferSubData(GL_ARRAY_BUFFER, 0, MAX_PARTICLES * 3 * sizeof(GLfloat), g_particule_color_data);
+
 
 
 	// Setup attributes for the particle shader
@@ -213,14 +234,20 @@ void ParticleSystem::render(float dt){
 	glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-
 	// 2nd attribute buffer : positions of particles' centers
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+	// 3rd attribute buffer : particles' colors
+	glEnableVertexAttribArray(2);
+	glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_TRUE, 0, (void*)0);
+
+
 	glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
 	glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
+	glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
 
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -228,6 +255,8 @@ void ParticleSystem::render(float dt){
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
+
 }
 
 __global__ void updateForceKernel(Particle *p, int MAX_PARTICLES)
@@ -253,6 +282,11 @@ __global__ void updateForceKernel(Particle *p, int MAX_PARTICLES)
 				Fz += F * dz / dist;
 			}
 		}
+
+
+		p[i].Fx = Fx;
+		p[i].Fy = Fy;
+		p[i].Fz = Fz;
 
 		// Update speed
 		p[i].vx += Fx;
@@ -316,6 +350,18 @@ void ParticleSystem::CUDAStep(float dt){
 	// retrieve the results
 	cudaMemcpy(g_particule_position_size_data, d_positions, buffer_size, cudaMemcpyDeviceToHost);
 	cudaMemcpy(ParticlesContainer, d_ParticlesContainer, size, cudaMemcpyDeviceToHost);
+
+
+	// TEMP
+	float maxF = 0.0f;
+	for (size_t i = 0; i < MAX_PARTICLES; i++)
+	{
+		Particle p = ParticlesContainer[i];
+		float F = sqrt(p.Fx * p.Fx + p.Fy*p.Fy + p.Fz*p.Fz);
+		maxF = max(maxF, F);
+	}
+
+	printf("%f\n", maxF);
 
 	cudaFree(d_ParticlesContainer); cudaFree(d_positions);
 
