@@ -20,10 +20,12 @@ void main()
 	vec3 CameraUp_worldspace = vec3(view[0][1], view[1][1], view[2][1]);
 	vec3 particleCenter_wordspace = particlePos.xyz;
 	
+	float particleSize = 1.0f;
+
 	vec3 vertexPosition_worldspace = 
 		particleCenter_wordspace
-		+ CameraRight_worldspace * aPos.x * 1.0f
-		+ CameraUp_worldspace * aPos.y * 1.0f;
+		+ CameraRight_worldspace * aPos.x * particleSize
+		+ CameraUp_worldspace * aPos.y * particleSize;
 
 
 	

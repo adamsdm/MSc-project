@@ -36,10 +36,12 @@ private:
 	unsigned int MAX_PARTICLES = 1000;
 	unsigned int MAX_DISTANCE = 100;
 
-	// Buffers
+	// Buffer indices
 	GLuint VertexArrayID;
 	GLuint billboard_vertex_buffer;
 	GLuint particles_position_buffer;
+
+	// Buffer data
 	GLfloat* g_particule_position_size_data;
 	static const GLfloat g_vertex_buffer_data[];
 
