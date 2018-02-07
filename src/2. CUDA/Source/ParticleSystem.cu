@@ -18,8 +18,6 @@ ParticleSystem::ParticleSystem(static const unsigned int _MAX_PARTICLES) {
 	initParticleSystem();
 
 
-
-
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
@@ -40,19 +38,17 @@ void ParticleSystem::initParticleSystem(){
 
 	float phi, r, x, y, z;
 
-	// Populate initial positions
+	// Populate initial positions and velocities
 	for (int i = 0; i < MAX_PARTICLES; i++) {
 
 		Particle p = ParticlesContainer[i];
-
-
+	
 		phi = (float)rand() / RAND_MAX * 2.0f * M_PI;
 		r = (float)rand() / RAND_MAX * MAX_DISTANCE;
 
-
-		float x = r * cos(phi);
-		float y = 10.0f + r * sin(phi);
-		float z = (rand() % (2 * 40) - (float)40);
+		x = r * cos(phi);
+		y = 10.0f + r * sin(phi);
+		z = (rand() % (2 * 40) - (float)40);
 		
 
 		// Setup particle
@@ -234,50 +230,7 @@ void ParticleSystem::render(float dt){
 	glDisableVertexAttribArray(1);
 }
 
-
-
-// These functions should launch the kernels for the respective framework
-void ParticleSystem::updateForces(float dt){
-
-
-
-	for (int i = 0; i < MAX_PARTICLES; i++) {
-
-		Particle pi = ParticlesContainer[i];
-		float Fx = 0; float Fy = 0; float Fz = 0;
-
-		for (int j = 0; j < MAX_PARTICLES; j++){
-
-			if (i != j){
-				Particle pj = ParticlesContainer[j];
-
-				float dx = pj.px - pi.px;
-				float dy = pj.py - pi.py;
-				float dz = pj.pz - pi.pz;
-
-				float dist = sqrt(dx*dx + dy*dy + dz*dz);
-
-				float F = (9.82 * pi.weight * pj.weight) / (dist + SOFTENING * SOFTENING);
-
-				Fx += F * dx / dist;
-				Fy += F * dy / dist;
-				Fz += F * dz / dist;
-			}
-		}
-
-
-		// Update speed
-		pi.vx += Fx;
-		pi.vy += Fy;
-		pi.vz += Fz;
-
-		ParticlesContainer[i] = pi;
-	}
-
-}
-
-
-__global__ void updateForceKernel(Particle *p, float dt, int MAX_PARTICLES)
+__global__ void updateForceKernel(Particle *p, int MAX_PARTICLES)
 {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -308,31 +261,13 @@ __global__ void updateForceKernel(Particle *p, float dt, int MAX_PARTICLES)
 	}
 }
 
-void ParticleSystem::CUDAStep(float dt){
-	
-	// set number of points 
-	int size = MAX_PARTICLES * sizeof(Particle);
+__global__ void updatePositionKernel(GLfloat *g_particule_position_size_data, Particle *ParticlesContainer, int MAX_PARTICLES, float dt, float simspeed){
 
-	// allocate memory
-	Particle *d_ParticlesContainer;
-
-	cudaMalloc((void**)&d_ParticlesContainer, size);
-	cudaMemcpy(d_ParticlesContainer, ParticlesContainer, size, cudaMemcpyHostToDevice);
-
-	// launch kernel
-	dim3 dimGrid(10);
-	dim3 dimBlock(1024);
-
-	updateForceKernel <<< dimGrid, dimBlock >>>(d_ParticlesContainer, dt, MAX_PARTICLES);
-
-	// retrieve the results
-	cudaMemcpy(ParticlesContainer, d_ParticlesContainer, size, cudaMemcpyDeviceToHost);
-
-	// No more than ~0.1 for a stable simulation
-	float simspeed = 0.01f;
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
 
 
-	for (int i = 0; i < MAX_PARTICLES; i++){
+	if (i < MAX_PARTICLES){
+		
 		Particle p = ParticlesContainer[i];
 
 		p.px = p.px + p.vx * simspeed*dt;
@@ -348,6 +283,42 @@ void ParticleSystem::CUDAStep(float dt){
 		g_particule_position_size_data[i * 3 + 2] = p.pz;
 	}
 	
+
+}
+
+void ParticleSystem::CUDAStep(float dt){
+	
+	 
+	int size = MAX_PARTICLES * sizeof(Particle);
+	float buffer_size = MAX_PARTICLES * 3 * sizeof(GLfloat);
+	float simspeed = 0.01f;	// No more than ~0.1 for a stable simulation
+
+	// Allocate memory
+	Particle *d_ParticlesContainer;
+	GLfloat *d_positions;
+
+	// Particle container
+	cudaMalloc((void**)&d_ParticlesContainer, size);
+	cudaMemcpy(d_ParticlesContainer, ParticlesContainer, size, cudaMemcpyHostToDevice);
+
+	// Vertex buffer
+	cudaMalloc((void**)&d_positions, buffer_size);
+	cudaMemcpy(d_positions, g_particule_position_size_data, buffer_size, cudaMemcpyHostToDevice);
+
+	// launch kernel
+	dim3 dimGrid(MAX_PARTICLES/1024);
+	dim3 dimBlock(1024);
+
+	updateForceKernel <<< dimGrid, dimBlock >>>(d_ParticlesContainer, MAX_PARTICLES);
+	updatePositionKernel <<< dimGrid, dimBlock >>>(d_positions, d_ParticlesContainer, MAX_PARTICLES, dt, simspeed);
+
+	
+	// retrieve the results
+	cudaMemcpy(g_particule_position_size_data, d_positions, buffer_size, cudaMemcpyDeviceToHost);
+	cudaMemcpy(ParticlesContainer, d_ParticlesContainer, size, cudaMemcpyDeviceToHost);
+
+	cudaFree(d_ParticlesContainer); cudaFree(d_positions);
+
 }
 
 
