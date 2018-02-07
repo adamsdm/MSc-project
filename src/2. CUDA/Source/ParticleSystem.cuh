@@ -56,7 +56,7 @@ private:
 	*/
 	void updateForces(float dt);
 
-	void CUDAupdateForces(float dt);
+	void CUDAStep(float dt);
 
 	/**
 	* Sequentially updates the positions.

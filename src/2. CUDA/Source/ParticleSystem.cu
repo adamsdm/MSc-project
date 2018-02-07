@@ -53,7 +53,7 @@ void ParticleSystem::initParticleSystem(){
 		float x = r * cos(phi);
 		float y = 10.0f + r * sin(phi);
 		float z = (rand() % (2 * 40) - (float)40);
-
+		
 
 		// Setup particle
 		p.weight = 1.0f;
@@ -61,14 +61,17 @@ void ParticleSystem::initParticleSystem(){
 		p.py = y;
 		p.pz = z;
 
+		glm::vec3 speed;
+
 		if (i % 2 == 0){
 			p.px += 200;
+			speed = 100.0f * glm::cross(glm::vec3(200.0f, 0.0f, 0.0f)-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 		}
 		else {
 			p.px -= 200;
+			speed = 100.0f * glm::cross(glm::vec3(-200.0f, 0.0f, 0.0f) - glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 		}
 
-		glm::vec3 speed = 4.0f * glm::cross(-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 
 		p.vx = speed.x;
 		p.vy = speed.y;
@@ -200,8 +203,7 @@ void ParticleSystem::renderBounds(){
 void ParticleSystem::render(float dt){
 
 	
-	CUDAupdateForces(dt);
-	updatePositions(dt);
+	CUDAStep(dt);
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
@@ -306,7 +308,7 @@ __global__ void updateForceKernel(Particle *p, float dt, int MAX_PARTICLES)
 	}
 }
 
-void ParticleSystem::CUDAupdateForces(float dt){
+void ParticleSystem::CUDAStep(float dt){
 	
 	// set number of points 
 	int size = MAX_PARTICLES * sizeof(Particle);
@@ -325,11 +327,8 @@ void ParticleSystem::CUDAupdateForces(float dt){
 
 	// retrieve the results
 	cudaMemcpy(ParticlesContainer, d_ParticlesContainer, size, cudaMemcpyDeviceToHost);
-	
-}
 
-void ParticleSystem::updatePositions(float dt){
-
+	// No more than ~0.1 for a stable simulation
 	float simspeed = 0.01f;
 
 
@@ -348,5 +347,7 @@ void ParticleSystem::updatePositions(float dt){
 		g_particule_position_size_data[i * 3 + 1] = p.py;
 		g_particule_position_size_data[i * 3 + 2] = p.pz;
 	}
+	
 }
+
 
