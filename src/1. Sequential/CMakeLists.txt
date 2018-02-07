@@ -1,10 +1,6 @@
 # Project definition
 cmake_minimum_required(VERSION 3.1)
-project(SeqVisOpenGL LANGUAGES CXX CUDA)
-
-
-# CUDA
-find_package(CUDA QUIET REQUIRED)
+project(SeqVisOpenGL)
 
 
 set(SRC_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/Source")
@@ -22,27 +18,20 @@ else()
     endif()
 endif()
 
+
 file(GLOB PROJECT_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl)
 file(GLOB PROJECT_SOURCES   ${SRC_DIR}/*.cpp)
 file(GLOB PROJECT_HEADERS   ${SRC_DIR}/*.h)
-file(GLOB CUDA_SOURCES	    ${SRC_DIR}/*.cu)
-file(GLOB CUDA_HEADERS	    ${SRC_DIR}/*.cuh)
+
 
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
-source_group("CUDA"    FILES ${CUDA_SOURCES}
-			     ${CUDA_HEADERS})
 
 
-cuda_add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
+add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
                                 	${PROJECT_HEADERS}
-                                	${PROJECT_SHADERS}
-					${CUDA_SOURCES}
-					${CUDA_HEADERS})
-
-
-
+                                	${PROJECT_SHADERS})
 
 
 

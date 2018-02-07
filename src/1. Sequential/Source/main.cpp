@@ -16,10 +16,11 @@
 #include "Camera.h"
 #include "Application.h"
 #include "ParticleSystem.h"
-#include "CudaCode.cuh"
 
 
-#define RENDER_BOUNDS
+//#define RENDER_BOUNDS
+
+#define NO_PARTICLES	1024
 
 // Window dimensions
 unsigned int W = 1200;
@@ -48,7 +49,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main() {
 
-	temp::CudaTestStruct();
 
 	// Create a window
 	GLFWwindow* window = App::initialize(W, H);
@@ -103,7 +103,7 @@ int main() {
 	// ********* Setup Particles ******** //
 	// ********************************** //
 
-	ParticleSystem particlesystem(1000);
+	ParticleSystem particlesystem(NO_PARTICLES);
 
 	// ********************************* //
 	// *********** Main Loop *********** //
