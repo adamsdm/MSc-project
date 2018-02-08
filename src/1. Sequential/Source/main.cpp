@@ -18,7 +18,7 @@
 #include "ParticleSystem.h"
 
 
-//#define RENDER_BOUNDS
+#define RENDER_BOUNDS
 
 #define NO_PARTICLES	1024
 
@@ -31,7 +31,7 @@ unsigned int H = 800;
 // ************ Camera ************* //
 // ********************************* //
 
-Camera camera(glm::vec3(0.0f, 0.0f, 600.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
 
 float lastX = W / 2.0f;
 float lastY = H / 2.0f;

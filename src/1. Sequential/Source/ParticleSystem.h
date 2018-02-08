@@ -8,6 +8,8 @@
 #include <glm/glm.hpp>
 #include <limits>
 
+#include "Shader.h"
+
 #define M_PI	3.14159265359
 #define SOFTENING 1e-9f
 
@@ -66,6 +68,7 @@ public:
 	* Renders bounding box
 	*/
 	void renderBounds();
+	void renderCube();
 
 	/**
 	* Sequentially calculates the bounds of the particles.
