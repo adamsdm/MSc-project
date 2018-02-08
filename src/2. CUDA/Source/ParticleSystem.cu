@@ -43,6 +43,8 @@ ParticleSystem::ParticleSystem(static const unsigned int _MAX_PARTICLES) {
 void ParticleSystem::initParticleSystem(){
 
 	float phi, r, x, y, z;
+	float offset = 200;
+	float rotationSpeed = 100.0f;
 
 	// Populate initial positions and velocities
 	for (int i = 0; i < MAX_PARTICLES; i++) {
@@ -56,23 +58,26 @@ void ParticleSystem::initParticleSystem(){
 		y = 10.0f + r * sin(phi);
 		z = (rand() % (2 * 40) - (float)40);
 		
-
+		
+		
 		// Setup particle
 		p.weight = 1.0f;
 		p.px = x;
 		p.py = y;
 		p.pz = z;
 
-		glm::vec3 speed;
+		glm::vec3 speed = glm::vec3(0.0, 0.0, 0.0);
 
+		
 		if (i % 2 == 0){
-			p.px += 200;
-			speed = 100.0f * glm::cross(glm::vec3(200.0f, 0.0f, 0.0f)-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
+			p.px += offset;
+			speed = rotationSpeed * glm::cross(glm::vec3(offset, 0.0f, 0.0f) - glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 		}
 		else {
-			p.px -= 200;
-			speed = 100.0f * glm::cross(glm::vec3(-200.0f, 0.0f, 0.0f) - glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
+			p.px -= offset;
+			speed = rotationSpeed * glm::cross(glm::vec3(-offset, 0.0f, 0.0f) - glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 		}
+		
 
 
 		p.vx = speed.x;
@@ -92,10 +97,6 @@ void ParticleSystem::initParticleSystem(){
 		g_particule_color_data[i * 3 + 2] = 255.0f;
 		
 	}
-
-	g_particule_color_data[(MAX_PARTICLES-1) * 3 + 0] = 255.0f;
-	g_particule_color_data[(MAX_PARTICLES-1) * 3 + 1] = 0.0f;
-	g_particule_color_data[(MAX_PARTICLES-1) * 3 + 2] = 0.0f;
 }
 
 ParticleSystem::~ParticleSystem(){
@@ -214,7 +215,7 @@ void ParticleSystem::renderBounds(){
 void ParticleSystem::render(float dt){
 
 	
-	CUDAStep(dt);
+	CUDAStep(0.03);
 
 	// Update buffer data
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
@@ -268,19 +269,18 @@ __global__ void updateForceKernel(Particle *p, int MAX_PARTICLES)
 
 		for (int j = 0; j < MAX_PARTICLES; j++){
 
-			if (i != j){
-				float dx = p[j].px - p[i].px;
-				float dy = p[j].py - p[i].py;
-				float dz = p[j].pz - p[i].pz;
+			float dx = p[j].px - p[i].px;
+			float dy = p[j].py - p[i].py;
+			float dz = p[j].pz - p[i].pz;
 
-				float dist = sqrt(dx*dx + dy*dy + dz*dz);
+			float dist = sqrt(dx*dx + dy*dy + dz*dz) + 1.0f;
 
-				float F = (9.82 * p[i].weight * p[j].weight) / (dist + SOFTENING * SOFTENING);
+			float F = (9.82 * p[i].weight * p[j].weight) / (dist + SOFTENING * SOFTENING);
 
-				Fx += F * dx / dist;
-				Fy += F * dy / dist;
-				Fz += F * dz / dist;
-			}
+			Fx += F * dx / dist;
+			Fy += F * dy / dist;
+			Fz += F * dz / dist;
+			
 		}
 
 
@@ -288,10 +288,12 @@ __global__ void updateForceKernel(Particle *p, int MAX_PARTICLES)
 		p[i].Fy = Fy;
 		p[i].Fz = Fz;
 
+		
 		// Update speed
 		p[i].vx += Fx;
 		p[i].vy += Fy;
 		p[i].vz += Fz;
+		
 	}
 }
 
@@ -344,8 +346,9 @@ void ParticleSystem::CUDAStep(float dt){
 	dim3 dimBlock(1024);
 
 	updateForceKernel <<< dimGrid, dimBlock >>>(d_ParticlesContainer, MAX_PARTICLES);
+	cudaDeviceSynchronize();
 	updatePositionKernel <<< dimGrid, dimBlock >>>(d_positions, d_ParticlesContainer, MAX_PARTICLES, dt, simspeed);
-
+	cudaDeviceSynchronize();
 	
 	// retrieve the results
 	cudaMemcpy(g_particule_position_size_data, d_positions, buffer_size, cudaMemcpyDeviceToHost);
@@ -353,16 +356,18 @@ void ParticleSystem::CUDAStep(float dt){
 
 
 	// TEMP
+	
 	float maxF = 0.0f;
 	for (size_t i = 0; i < MAX_PARTICLES; i++)
 	{
 		Particle p = ParticlesContainer[i];
 		float F = sqrt(p.Fx * p.Fx + p.Fy*p.Fy + p.Fz*p.Fz);
-		maxF = max(maxF, F);
+		
+		g_particule_color_data[i * 3 + 0] = p.Fx;
+		g_particule_color_data[i * 3 + 1] = p.Fy;
+		g_particule_color_data[i * 3 + 2] = p.Fz;
 	}
-
-	printf("%f\n", maxF);
-
+	
 	cudaFree(d_ParticlesContainer); cudaFree(d_positions);
 
 }

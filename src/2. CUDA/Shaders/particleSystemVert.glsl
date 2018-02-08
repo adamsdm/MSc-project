@@ -1,11 +1,11 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 particlePos;
-layout (location = 2) in vec3 particleCol;
+layout (location = 2) in vec3 particleForce;
 
 out vec2 TexCoord;
 out vec3 vParticlePos;
-out vec3 vColor;
+out vec3 vForce;
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -35,5 +35,5 @@ void main()
 
     TexCoord = aPos.xy + vec2(0.5, 0.5);
 	vParticlePos = particlePos;
-	vColor = particleCol;
+	vForce = particleForce;
 }
