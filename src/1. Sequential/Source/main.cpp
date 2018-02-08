@@ -175,7 +175,7 @@ int main() {
 		OctreeNode* root = new OctreeNode(-100.0f, -100.0f, -100.0f,
 			100.0f, 100.0f, 100.0f);
 
-		OctreeNode::insert(root, 10.0f, 15.0f, 30.0f, nullptr);
+		root->renderBounds();
 		
 		
 #endif
