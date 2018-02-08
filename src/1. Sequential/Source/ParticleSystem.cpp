@@ -1,7 +1,7 @@
 ﻿#include "ParticleSystem.h"
 
 
-ParticleSystem::ParticleSystem(static const unsigned int _MAX_PARTICLES) {
+ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 	MAX_PARTICLES = _MAX_PARTICLES;
 	// Quad vertices
 	GLfloat g_vertex_buffer_data[] = {
@@ -10,13 +10,14 @@ ParticleSystem::ParticleSystem(static const unsigned int _MAX_PARTICLES) {
 		-0.5f, 0.5f, 0.0f,
 		0.5f, 0.5f, 0.0f,
 	};
-
 	g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
-	
+
+
+	// Create share
+
 	ParticlesContainer = new Particle[_MAX_PARTICLES];
 	initParticleSystem();
 
-	
 	
 	
 	glGenVertexArrays(1, &VertexArrayID);
@@ -125,8 +126,38 @@ void ParticleSystem::getBounds(float &_minx, float &_maxx, float &_miny, float &
 	
 }
 
-void ParticleSystem::renderBounds(){
+void ParticleSystem::renderBounds(Shader boxShader){
+	
+	GLfloat
+		min_x, max_x,
+		min_y, max_y,
+		min_z, max_z;
+
+	getBounds(min_x, max_x, min_y, max_y, min_z, max_z);
+
+	// Scale by 0.5, since cube is given in coordinates 0 to 1
+	glm::vec3 size = 0.5f*glm::vec3(max_x - min_x, max_y - min_y, max_z - min_z);
+	glm::vec3 center = glm::vec3((min_x + max_x) / 2, (min_y + max_y) / 2, (min_z + max_z) / 2);
+	glm::mat4 model = glm::translate(glm::mat4(1), center) * glm::scale(glm::mat4(1), size);
+	
+	
+	boxShader.setMat4("model", model);
 	renderCube();
+
+
+	/*
+	glm::mat4 model(1.0f);
+	for (int i = 0; i < MAX_PARTICLES; i++){
+		Particle p = ParticlesContainer[i];
+
+		model = glm::mat4(1.0f);
+		glm::vec3 center = glm::vec3(p.px, p.py, p.pz);
+		glm::mat4 model = glm::translate(glm::mat4(1), center) * glm::scale(glm::mat4(1), glm::vec3(1.0f));
+
+		boxShader.setMat4("model", model);
+		renderCube();
+	}
+	*/
 }
 
 void ParticleSystem::renderCube(){
@@ -134,15 +165,15 @@ void ParticleSystem::renderCube(){
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
 	float vertices[] = {
-		0.5f, 0.5f, 0.5f,  // front top right		0
-		0.5f, -0.5f, 0.5f,  // front bottom right	1
-		-0.5f, -0.5f, 0.5f,  // front bottom left	2
-		-0.5f, 0.5f, 0.5f,   // front top left		3
+		1.0f, 1.0f, 1.0f,  // front top right		0
+		1.0f, -1.0f, 1.0f,  // front bottom right	1
+		-1.0f, -1.0f, 1.0f,  // front bottom left	2
+		-1.0f, 1.0f, 1.0f,   // front top left		3
 
-		0.5f, 0.5f, -0.5f,  // back top right		4
-		0.5f, -0.5f, -0.5f,  // back bottom right	5
-		-0.5f, -0.5f, -0.5f,  // back bottom left	6
-		-0.5f, 0.5f, -0.5f   // back top left		7
+		1.0f, 1.0f, -1.0f,  // back top right		4
+		1.0f, -1.0f, -1.0f,  // back bottom right	5
+		-1.0f, -1.0f, -1.0f,  // back bottom left	6
+		-1.0f, 1.0f, -1.0f   // back top left		7
 	};
 	unsigned int indices[] = {  // note that we start from 0!
 		2, 1, 0,
@@ -250,10 +281,9 @@ void ParticleSystem::renderCube(){
 
 void ParticleSystem::render(float dt){
 	
-	/*
+	
 	updateForces(dt);
 	updatePositions(dt);
-	*/
 
 		
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);

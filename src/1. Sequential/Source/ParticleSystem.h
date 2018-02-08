@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <limits>
 
+#include "Camera.h"
 #include "Shader.h"
 
 #define M_PI	3.14159265359
@@ -35,6 +36,7 @@ private:
 	static const GLfloat g_vertex_buffer_data[];
 
 	Particle* ParticlesContainer;
+	Shader *particleShader;
 
 	/**
 	* Inits the positions and velocities of the particles.
@@ -67,7 +69,7 @@ public:
 	/**
 	* Renders bounding box
 	*/
-	void renderBounds();
+	void renderBounds(Shader boxShader);
 	void renderCube();
 
 	/**

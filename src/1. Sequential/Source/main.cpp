@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "Application.h"
 #include "ParticleSystem.h"
+#include "OctreeNode.h"
 
 
 #define RENDER_BOUNDS
@@ -31,7 +32,7 @@ unsigned int H = 800;
 // ************ Camera ************* //
 // ********************************* //
 
-Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 600.0f));
 
 float lastX = W / 2.0f;
 float lastY = H / 2.0f;
@@ -82,7 +83,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load and generate the texture
 	int width, height, nrChannels;
-	unsigned char *data = stbi_load("../Resources/star.png", &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load("../Resources/sun.png", &width, &height, &nrChannels, 0);
 
 	
 
@@ -169,7 +170,14 @@ int main() {
 		boxShader.setMat4("view", view);
 		boxShader.setMat4("projection", projection);
 
-		particlesystem.renderBounds();
+		//particlesystem.renderBounds(boxShader);
+
+		OctreeNode* root = new OctreeNode(-100.0f, -100.0f, -100.0f,
+			100.0f, 100.0f, 100.0f);
+
+		OctreeNode::insert(root, 10.0f, 15.0f, 30.0f, nullptr);
+		
+		
 #endif
 		
 
