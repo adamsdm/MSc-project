@@ -26,7 +26,7 @@ OctreeNode::OctreeNode(float _min_x, float _min_y, float _min_z,
 
 	for (size_t i = 0; i < 8; i++)
 	{
-		children[i] = nullptr;
+		children[i] = NULL;
 	}
 	
 	usr_val = nullptr;
@@ -36,82 +36,127 @@ OctreeNode::OctreeNode(float _min_x, float _min_y, float _min_z,
 }
 
 OctreeNode::~OctreeNode(){
-	
+	free();
 }
 
-int OctreeNode::insert(OctreeNode *node, float x, float y, float z, void *usr_data){
+void OctreeNode::free(){
+	if(usr_val) delete usr_val;
 
-	if (!node) return 0;
+	for (int i = 0; i < 8; i++){
+		if (children[i])
+			children[i]->free();
+	}
+	
+	delete[] children;
 
-	if (node->no_elements == 0){
-		node->pos_x = x;
-		node->pos_y = y;
-		node->pos_z = z;
-		node->usr_val = usr_val;
+}
+
+int OctreeNode::insert(float x, float y, float z, void *usr_data){
+	/*
+	if (no_elements == 0){
+		pos_x = x;
+		pos_y = y;
+		pos_z = z;
+		usr_val = usr_val;
 	}
 
 	// If node already contains data, make node into a cell
-	if (node->no_elements == 1){
-
+	if (no_elements == 1){
+		printf("Node already has a element in the cell\n");
+		insert_sub(pos_x, pos_y, pos_z, usr_val);
+		usr_val = NULL;
 	}
 
 	no_elements++;
 	return no_elements;
+	*/
+
+	/* if this node is empty, it will be turned into a leaf by placing the
+	data directly inside of it */
+	if (no_elements == 0) {
+		pos_x = x;
+		pos_y = y;
+		pos_z = z;
+		usr_val = usr_val;
+	}
+
+	/* handle a node that already contains data */
+	else {
+		/* If this node is a leaf, take its position and place it in the
+		appropriate child, no longer making this a leaf */
+		if (no_elements == 1) {
+			insert_sub(pos_x, pos_y, pos_z, usr_val);
+			usr_val = NULL;
+		}
+
+		/* Since this node is occupied, recursively add the data to the
+		appropriate child node */
+		insert_sub(x, y, z, usr_data);
+	}
+	/* A data point was inserted into this node, therefor the element count
+	must be incremented */
+	no_elements++;
+	return no_elements;
 }
 
-int OctreeNode::insert_sub(OctreeNode *node, float x, float y, float z, void* usr_data){
-	if (!node) return 0;
+
+
+int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
 	int sub = 0;
-	float min_x, min_y, min_z;
-	float max_x, max_y, max_z;
+
+	// New boudns to be inserted into child node
+	float n_min_x, n_min_y, n_min_z;
+	float n_max_x, n_max_y, n_max_z;
 
 	// Select which octant to insert the node
 	/* Children 0,2,4,8 have positive x-coordinates */
-	if (x > node->mid_x) {
+	if (x > mid_x) {
 		sub += 1;
-		min_x = node->mid_x;
-		max_x = node->max_x;
+		n_min_x = mid_x;
+		n_max_x = max_x;
 	}
 	else {
-		min_x = node->min_x;
-		max_x = node->mid_x;
+		n_min_x = min_x;
+		n_max_x = mid_x;
 	}
 
 	/* Children 0,1,3,4 have positive y-coordinates */
-	if (y > node->mid_y) {
+	if (y > mid_y) {
 		sub += 2;
-		min_y = node->mid_y;
-		max_y = node->max_y;
+		n_min_y = mid_y;
+		n_max_y = max_y;
 	}
 	else {
-		min_y = node->min_y;
-		max_y = node->mid_y;
+		n_min_y = min_y;
+		n_max_y = mid_y;
 	}
 	
 	/* Children 0,1,2,3 have positive z-coordinates */
 
-	if (z > node->mid_z) {
+	if (z > mid_z) {
 		sub += 4;
-		min_z = node->mid_z;
-		max_z = node->max_z;
+		n_min_z = mid_z;
+		n_max_z = max_z;
 	}
 	else {
-		min_z = node->min_z;
-		max_z = node->mid_z;
+		n_min_z = min_z;
+		n_max_z = mid_z;
 	}
 
-	if (!node->children[sub])
-		node->children[sub] = new OctreeNode(min_x, min_y, min_z, max_x, max_y, max_z);
+	if (!children[sub])
+		children[sub] = new OctreeNode(n_min_x, n_min_y, n_min_z, n_max_x, n_max_y, n_max_z);
 
-	return insert((node->children)[sub], x, y, z, usr_val);
-
+	return children[sub]->insert(x, y, z, usr_val);
+	
 }
 
 void OctreeNode::renderBounds(){
 	
+
 	for (int i = 0; i < 8; i++){
-		if (children[i])
+		if (children[i]){
 			children[i]->renderBounds();
+		}
 	}
 
 	/*

@@ -75,6 +75,8 @@ public:
 	/**
 	* Sequentially calculates the bounds of the particles.
 	*/
-	void ParticleSystem::getBounds(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
+	void getBounds(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
+
+	Particle getParticle(int index){ return ParticlesContainer[index]; }
 
 };

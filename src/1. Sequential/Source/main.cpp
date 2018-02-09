@@ -105,6 +105,8 @@ int main() {
 	// ********************************** //
 
 	ParticleSystem particlesystem(NO_PARTICLES);
+	
+	
 
 	// ********************************* //
 	// *********** Main Loop *********** //
@@ -171,9 +173,20 @@ int main() {
 		boxShader.setMat4("projection", projection);
 
 		//particlesystem.renderBounds(boxShader);
+		
 
-		OctreeNode* root = new OctreeNode(-100.0f, -100.0f, -100.0f,
-			100.0f, 100.0f, 100.0f);
+		float minx, miny, minz, maxx, maxy, maxz;
+
+		particlesystem.getBounds(minx, maxx, miny, maxy, minz, maxz);
+
+		// Build tree
+		OctreeNode* root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
+
+		for (int i = 0; i < NO_PARTICLES; i++){
+			Particle p = particlesystem.getParticle(i);
+			root->insert(p.px, p.py, p.pz, nullptr);
+		}
+		
 
 		root->renderBounds();
 		

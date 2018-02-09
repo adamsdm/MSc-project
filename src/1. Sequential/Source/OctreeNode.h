@@ -33,8 +33,13 @@ private:
 	int no_elements;
 
 
+	// Helper function to insert the node in the correct position
+	int insert_sub(float x, float y, float z, void *usr_data);
 
-	int insert_sub(OctreeNode *node, float x, float y, float z, void *usr_data);
+
+	// Helper function that recursively frees all children
+	void free();
+
 
 public:
 	
@@ -43,8 +48,8 @@ public:
 
 	~OctreeNode();
 
-	// Inserts a node
-	int insert(OctreeNode *node, float x, float y, float z, void *usr_val);
+	// Inserts a node into this octree
+	int insert(float x, float y, float z, void *usr_val);
 
 	void renderBounds();
 };
