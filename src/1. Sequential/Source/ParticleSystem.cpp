@@ -279,11 +279,24 @@ void ParticleSystem::renderCube(){
 
 }
 
+void ParticleSystem::buildTree(){
+	float minx, miny, minz, maxx, maxy, maxz;
+	getBounds(minx, maxx, miny, maxy, minz, maxz);
+	root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
+
+	
+	for (int i = 0; i < MAX_PARTICLES; i++){
+		Particle p = ParticlesContainer[i];
+		root->insert(p.px, p.py, p.pz, nullptr);
+	}
+	
+}
+
 void ParticleSystem::render(float dt){
 	
-	
-	updateForces(dt);
-	updatePositions(dt);
+	buildTree();
+	//updateForces(dt);
+	//updatePositions(dt);
 
 		
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
@@ -355,6 +368,8 @@ void ParticleSystem::updateForces(float dt){
 	}
 
 }
+
+
 
 void ParticleSystem::updatePositions(float dt){
 

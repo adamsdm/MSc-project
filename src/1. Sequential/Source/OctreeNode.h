@@ -38,7 +38,7 @@ private:
 
 
 	// Helper function that recursively frees all children
-	void free();
+	
 
 
 public:
@@ -50,6 +50,6 @@ public:
 
 	// Inserts a node into this octree
 	int insert(float x, float y, float z, void *usr_val);
-
+	void free();
 	void renderBounds();
 };

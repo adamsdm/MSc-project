@@ -19,9 +19,12 @@
 #include "OctreeNode.h"
 
 
-#define RENDER_BOUNDS
-
 #define NO_PARTICLES	1024
+
+
+// Global application state
+
+bool render_bounds = true;
 
 // Window dimensions
 unsigned int W = 1200;
@@ -166,33 +169,16 @@ int main() {
 		// Render particle system
 		particlesystem.render(deltaTime);
 
-#ifdef RENDER_BOUNDS
-		// Render bounding box
-		boxShader.use();
-		boxShader.setMat4("view", view);
-		boxShader.setMat4("projection", projection);
-
-		//particlesystem.renderBounds(boxShader);
 		
+		if (render_bounds){
 
-		float minx, miny, minz, maxx, maxy, maxz;
+			boxShader.use();
+			boxShader.setMat4("view", view);
+			boxShader.setMat4("projection", projection);
 
-		particlesystem.getBounds(minx, maxx, miny, maxy, minz, maxz);
-
-		// Build tree
-		OctreeNode* root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
-
-		for (int i = 0; i < NO_PARTICLES; i++){
-			Particle p = particlesystem.getParticle(i);
-			root->insert(p.px, p.py, p.pz, nullptr);
+			particlesystem.getTree()->renderBounds();
 		}
-		
-
-		root->renderBounds();
-		
-		
-#endif
-		
+				
 
 
 		glfwSwapBuffers(window);
@@ -200,7 +186,7 @@ int main() {
 	}
 
 	// Clean up
-
+	particlesystem.getTree()->free();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
@@ -211,7 +197,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	H = height;
 	glViewport(0, 0, width, height);
 }
-void processInput(GLFWwindow *window) {
+void processInput(GLFWwindow* window) {
 
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -231,6 +217,11 @@ void processInput(GLFWwindow *window) {
 		camera.ProcessKeyboard(UP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		camera.ProcessKeyboard(DOWN, deltaTime);
+
+
+	// State management
+	if (glfwGetKey(window, GLFW_KEY_B))
+		render_bounds = !render_bounds;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)

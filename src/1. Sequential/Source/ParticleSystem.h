@@ -10,6 +10,7 @@
 
 #include "Camera.h"
 #include "Shader.h"
+#include "OctreeNode.h"
 
 #define M_PI	3.14159265359
 #define SOFTENING 1e-9f
@@ -35,8 +36,10 @@ private:
 	GLfloat* g_particule_position_size_data;
 	static const GLfloat g_vertex_buffer_data[];
 
-	Particle* ParticlesContainer;
+	// Data
+	Particle *ParticlesContainer;
 	Shader *particleShader;
+	OctreeNode *root;
 
 	/**
 	* Inits the positions and velocities of the particles.
@@ -47,6 +50,7 @@ private:
 	* Sequentially calculates the forces.
 	* @param dt delta time.
 	*/
+	void buildTree();
 	void updateForces(float dt);
 
 	/**
@@ -66,6 +70,7 @@ public:
 	*/
 	void render(float dt);
 
+	OctreeNode* getTree(){ return root; }
 	/**
 	* Renders bounding box
 	*/
