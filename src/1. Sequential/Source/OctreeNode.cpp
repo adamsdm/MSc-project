@@ -151,16 +151,19 @@ int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
 	
 }
 
+
+// This function contains ALOT of memory leaks
+// TODO: Reimplement in ParticleSystem class to avoid reallocating GL buffers
 void OctreeNode::renderBounds(){
 	
 
-	/*
+	
 	for (int i = 0; i < 8; i++){
 		if (children[i]){
 			children[i]->renderBounds();
 		}
 	}
-	*/
+	
 
 
 	float vertices[] = {

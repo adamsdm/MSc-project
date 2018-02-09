@@ -142,27 +142,10 @@ void ParticleSystem::renderBounds(Shader boxShader){
 	
 	boxShader.setMat4("model", model);
 	renderCube();
-
-
-	/*
-	glm::mat4 model(1.0f);
-	for (int i = 0; i < MAX_PARTICLES; i++){
-		Particle p = ParticlesContainer[i];
-
-		model = glm::mat4(1.0f);
-		glm::vec3 center = glm::vec3(p.px, p.py, p.pz);
-		glm::mat4 model = glm::translate(glm::mat4(1), center) * glm::scale(glm::mat4(1), glm::vec3(1.0f));
-
-		boxShader.setMat4("model", model);
-		renderCube();
-	}
-	*/
 }
 
 void ParticleSystem::renderCube(){
-	
-	// set up vertex data (and buffer(s)) and configure vertex attributes
-	// ------------------------------------------------------------------
+
 	float vertices[] = {
 		1.0f, 1.0f, 1.0f,  // front top right		0
 		1.0f, -1.0f, 1.0f,  // front bottom right	1
@@ -187,9 +170,9 @@ void ParticleSystem::renderCube(){
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
+
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 	glBindVertexArray(VAO);
-
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -198,7 +181,6 @@ void ParticleSystem::renderCube(){
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 	glDrawElements(GL_LINE_STRIP, 16, GL_UNSIGNED_INT, 0);
 	glDisableVertexAttribArray(0);
 }

@@ -24,7 +24,7 @@
 
 // Global application state
 
-bool render_bounds = true;
+bool render_bounds = false;
 
 // Window dimensions
 unsigned int W = 1200;
@@ -123,6 +123,7 @@ int main() {
 	glm::mat4 view;
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 4000.0f);
 
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// Update time
@@ -177,10 +178,13 @@ int main() {
 			boxShader.setMat4("projection", projection);
 
 			particlesystem.getTree()->renderBounds();
+			
 		}
 				
 		// IMPORTANT: Dealocate the tree, otherwise we get a huge memoryleak since new nodes are added recursively, resulting in an infinite tree
 		particlesystem.getTree()->free();
+
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

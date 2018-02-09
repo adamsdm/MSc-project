@@ -7,7 +7,7 @@ private:
 	
 	// Array storing pointers to children
 	OctreeNode* children[8];
-	unsigned int BoxVBO, BoxVAO, BoxEBO;
+	GLuint BoxVBO, BoxVAO, BoxEBO;
 
 	// Position of this node if node is a leaf (particle)
 	float pos_y;
