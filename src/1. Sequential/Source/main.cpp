@@ -179,14 +179,13 @@ int main() {
 			particlesystem.getTree()->renderBounds();
 		}
 				
-
-
+		// IMPORTANT: Dealocate the tree, otherwise we get a huge memoryleak since new nodes are added recursively, resulting in an infinite tree
+		particlesystem.getTree()->free();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	// Clean up
-	particlesystem.getTree()->free();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;

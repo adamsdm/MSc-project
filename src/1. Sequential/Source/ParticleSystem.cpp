@@ -31,7 +31,6 @@ ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 	// The VBO containing the positions and sizes of the particles
 	glGenBuffers(1, &particles_position_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), g_particule_position_size_data, GL_STREAM_DRAW);
 	
 }
@@ -202,81 +201,6 @@ void ParticleSystem::renderCube(){
 	glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 	glDrawElements(GL_LINE_STRIP, 16, GL_UNSIGNED_INT, 0);
 	glDisableVertexAttribArray(0);
-
-
-	/*
-	float minx, maxx;
-	float miny, maxy;
-	float minz, maxz;
-
-	getBounds(minx, maxx, miny, maxy, minz, maxz);
-	/*
-	// Bad way.. :/
-	float vertices[] = {
-		minx, miny, minz,
-		maxx, miny, minz,
-		maxx, maxy, minz,
-		maxx, maxy, minz,
-		minx, maxy, minz,
-		minx, miny, minz,
-
-		minx, miny, maxz,
-		maxx, miny, maxz,
-		maxx, maxy, maxz,
-		maxx, maxy, maxz,
-		minx, maxy, maxz,
-		minx, miny, maxz,
-
-		maxx, maxy, maxz,
-		minx, maxy, minz,
-		minx, miny, minz,
-		minx, miny, minz,
-		minx, miny, maxz,
-		minx, maxy, maxz, 
-
-		maxx, maxy, maxz, 
-		maxx, maxy, minz,
-		maxx, miny, minz,
-		maxx, miny, minz,
-		maxx, miny, maxz,
-		maxx, maxy, maxz,
-
-		minx, miny, minz,
-		maxx, miny, minz,
-		maxx, miny, maxz,
-		maxx, miny, maxz,
-		minx, miny, maxz,
-		minx, miny, minz,
-
-		minx, maxy, minz,
-		maxx, maxy, minz,
-		maxx, maxy, maxz,
-		maxx, maxy, maxz,
-		maxx, maxy, maxz,
-		minx, maxy, minz,
-	};
-	
-
-
-
-	unsigned int VBO, VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// position attribute
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	*/
-
 }
 
 void ParticleSystem::buildTree(){

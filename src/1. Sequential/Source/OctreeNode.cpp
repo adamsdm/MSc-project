@@ -32,6 +32,9 @@ OctreeNode::OctreeNode(float _min_x, float _min_y, float _min_z,
 	usr_val = nullptr;
 	no_elements = 0;
 	
+	glGenVertexArrays(1, &BoxVAO);
+	glGenBuffers(1, &BoxVBO);
+	glGenBuffers(1, &BoxEBO);
 
 }
 
@@ -99,8 +102,6 @@ int OctreeNode::insert(float x, float y, float z, void *usr_data){
 	return no_elements;
 }
 
-
-
 int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
 	int sub = 0;
 
@@ -153,26 +154,15 @@ int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
 void OctreeNode::renderBounds(){
 	
 
+	/*
 	for (int i = 0; i < 8; i++){
 		if (children[i]){
 			children[i]->renderBounds();
 		}
 	}
-
-	/*
-	float vertices[] = {
-		1.0f, 1.0f, 1.0f,  // front top right		0
-		1.0f, -1.0f, 1.0f,  // front bottom right	1
-		-1.0f, -1.0f, 1.0f,  // front bottom left	2
-		-1.0f, 1.0f, 1.0f,   // front top left		3
-
-		1.0f, 1.0f, -1.0f,  // back top right		4
-		1.0f, -1.0f, -1.0f,  // back bottom right	5
-		-1.0f, -1.0f, -1.0f,  // back bottom left	6
-		-1.0f, 1.0f, -1.0f   // back top left		7
-	};
 	*/
-	
+
+
 	float vertices[] = {
 		max_x, max_y, max_z,  // front top right		0
 		max_x, min_y, max_z,  // front bottom right	1
@@ -194,23 +184,22 @@ void OctreeNode::renderBounds(){
 		4
 
 	};
-	unsigned int VBO, VAO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	
+	
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
+	glBindVertexArray(BoxVAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, BoxVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BoxEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 	glDrawElements(GL_LINE_STRIP, 16, GL_UNSIGNED_INT, 0);
 	glDisableVertexAttribArray(0);
+	
 
 }
