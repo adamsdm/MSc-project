@@ -1,6 +1,9 @@
 #pragma once
 #include <glad/glad.h>
 #include <stdio.h>
+#include <glm/glm.hpp>
+
+#include "Shader.h"
 
 class OctreeNode {
 private:
@@ -38,9 +41,8 @@ private:
 	int insert_sub(float x, float y, float z, void *usr_data);
 
 
-	// Helper function that recursively frees all children
 	
-
+	
 
 public:
 	
@@ -49,8 +51,11 @@ public:
 
 	~OctreeNode();
 
+	// Recursively steps through the tree and sets model matrix for each node
+	// Should only be used from ParticleSystem.cpp
+	void setModelAndRender(Shader boxShader);
+
 	// Inserts a node into this octree
 	int insert(float x, float y, float z, void *usr_val);
 	void free();
-	void renderBounds();
 };

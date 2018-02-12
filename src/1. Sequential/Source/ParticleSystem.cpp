@@ -32,6 +32,12 @@ ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 	glGenBuffers(1, &particles_position_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), g_particule_position_size_data, GL_STREAM_DRAW);
+
+
+	// Generate buffers for the box
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
 	
 }
 
@@ -91,14 +97,14 @@ ParticleSystem::~ParticleSystem(){
 void ParticleSystem::getBounds(float &_minx, float &_maxx, float &_miny, float &_maxy, float &_minz, float &_maxz){
 
 
-	float minx = 99999999.0f;
-	float maxx = -99999999.0f;
+	float minx = ParticlesContainer[0].px;
+	float maxx = ParticlesContainer[0].px;
 	
-	float miny = 99999999.0f;
-	float maxy = -99999999.0f;
+	float miny = ParticlesContainer[0].py;
+	float maxy = ParticlesContainer[0].py;
 
-	float minz = 99999999.0f;
-	float maxz = -99999999.0f;
+	float minz = ParticlesContainer[0].pz;
+	float maxz = ParticlesContainer[0].pz;
 
 	for (int i = 0; i < MAX_PARTICLES; i++){
 		glm::vec3 pos = glm::vec3(ParticlesContainer[i].px, ParticlesContainer[i].py, ParticlesContainer[i].pz);
@@ -126,25 +132,6 @@ void ParticleSystem::getBounds(float &_minx, float &_maxx, float &_miny, float &
 }
 
 void ParticleSystem::renderBounds(Shader boxShader){
-	
-	GLfloat
-		min_x, max_x,
-		min_y, max_y,
-		min_z, max_z;
-
-	getBounds(min_x, max_x, min_y, max_y, min_z, max_z);
-
-	// Scale by 0.5, since cube is given in coordinates 0 to 1
-	glm::vec3 size = 0.5f*glm::vec3(max_x - min_x, max_y - min_y, max_z - min_z);
-	glm::vec3 center = glm::vec3((min_x + max_x) / 2, (min_y + max_y) / 2, (min_z + max_z) / 2);
-	glm::mat4 model = glm::translate(glm::mat4(1), center) * glm::scale(glm::mat4(1), size);
-	
-	
-	boxShader.setMat4("model", model);
-	renderCube();
-}
-
-void ParticleSystem::renderCube(){
 
 	float vertices[] = {
 		1.0f, 1.0f, 1.0f,  // front top right		0
@@ -164,12 +151,8 @@ void ParticleSystem::renderCube(){
 		4, 5, 6,
 		7, 3, 7,
 		4
-			
+
 	};
-	unsigned int VBO, VAO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
 
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 	glBindVertexArray(VAO);
@@ -181,8 +164,14 @@ void ParticleSystem::renderCube(){
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glDrawElements(GL_LINE_STRIP, 16, GL_UNSIGNED_INT, 0);
+	glm::mat4 model(1.0f);
+	for (int i = 0; i < 10; i++){
+		root->setModelAndRender(boxShader);
+	}
+	
 	glDisableVertexAttribArray(0);
+
+
 }
 
 void ParticleSystem::buildTree(){
@@ -202,7 +191,8 @@ void ParticleSystem::render(float dt){
 	
 	buildTree();
 	//updateForces(dt);
-	//updatePositions(dt);
+	BarnesHutUpdateForces(dt);
+	updatePositions(dt);
 
 		
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
@@ -233,12 +223,12 @@ void ParticleSystem::render(float dt){
 	glDisableVertexAttribArray(1);
 }
 
+void ParticleSystem::BarnesHutUpdateForces(float dt){
 
+}
 
 // These functions should launch the kernels for the respective framework
 void ParticleSystem::updateForces(float dt){
-
-
 
 	for (int i = 0; i < MAX_PARTICLES; i++) {
 

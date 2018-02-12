@@ -124,6 +124,18 @@ int main() {
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 4000.0f);
 
 
+
+
+
+	GLuint BoxVBO, BoxVAO, BoxEBO;
+	glGenVertexArrays(1, &BoxVAO);
+	glGenBuffers(1, &BoxVBO);
+	glGenBuffers(1, &BoxEBO);
+
+
+
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// Update time
@@ -169,15 +181,15 @@ int main() {
 		
 		// Render particle system
 		particlesystem.render(deltaTime);
-
 		
+
 		if (render_bounds){
 
 			boxShader.use();
+
 			boxShader.setMat4("view", view);
 			boxShader.setMat4("projection", projection);
-
-			particlesystem.getTree()->renderBounds();
+			particlesystem.renderBounds(boxShader);
 			
 		}
 				
@@ -223,8 +235,10 @@ void processInput(GLFWwindow* window) {
 
 
 	// State management
-	if (glfwGetKey(window, GLFW_KEY_B))
-		render_bounds = !render_bounds;
+	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+		render_bounds = true;
+	if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+		render_bounds = false;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)

@@ -36,6 +36,10 @@ private:
 	GLfloat* g_particule_position_size_data;
 	static const GLfloat g_vertex_buffer_data[];
 
+
+	// Box buffers
+	GLuint VBO, VAO, EBO;
+
 	// Data
 	Particle *ParticlesContainer;
 	Shader *particleShader;
@@ -52,6 +56,7 @@ private:
 	*/
 	void buildTree();
 	void updateForces(float dt);
+	void BarnesHutUpdateForces(float dt);
 
 	/**
 	* Sequentially updates the positions.
