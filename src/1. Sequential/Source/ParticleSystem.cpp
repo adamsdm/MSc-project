@@ -1,6 +1,13 @@
 ﻿#include "ParticleSystem.h"
 
 
+struct Cell {
+	float m;
+	float com_x;
+	float com_y;
+	float com_z;
+};
+
 ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 	MAX_PARTICLES = _MAX_PARTICLES;
 	// Quad vertices
@@ -14,10 +21,8 @@ ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 
 
 	// Create share
-
 	ParticlesContainer = new Particle[_MAX_PARTICLES];
 	initParticleSystem();
-
 	
 	
 	glGenVertexArrays(1, &VertexArrayID);
@@ -35,10 +40,46 @@ ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 
 
 	// Generate buffers for the box
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, &BoxVAO);
+	glGenBuffers(1, &BoxVBO);
+	glGenBuffers(1, &BoxEBO);
+
+	// Generate buffers for com triangle
+	glGenVertexArrays(1, &comVAO);
+	glGenBuffers(1, &comVBO);
+
+}
+
+void ParticleSystem::renderCOM(OctreeNode *node, Shader comShader){
+
+	GLfloat triangle_vertices[] = {
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		0.0f, 0.5f, 0.0f
+	};
+
 	
+	Cell *c = (Cell*)node->usr_val;
+
+	glm::mat4 model(1.0f);
+	model = glm::translate(model, glm::vec3(c->com_x, c->com_y, c->com_z));
+	model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+	comShader.setMat4("model", model);
+
+
+	glBindVertexArray(comVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, comVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	glBindVertexArray(comVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 void ParticleSystem::initParticleSystem(){
@@ -54,10 +95,11 @@ void ParticleSystem::initParticleSystem(){
 		phi = (float) rand() / RAND_MAX * 2.0f * M_PI;
 		r = (float) rand() / RAND_MAX * MAX_DISTANCE;
 
+		
 
 		float x = r * cos(phi);
 		float y = 10.0f + r * sin(phi);
-		float z =  (rand() % (2 * 40) - (float)40);
+		float z = (rand() % (2 * 40) - (float)40);
 
 
 		// Setup particle
@@ -65,7 +107,7 @@ void ParticleSystem::initParticleSystem(){
 		p.px = x;
 		p.py = y;
 		p.pz = z;
-
+		
 		if (i % 2 == 0){
 			p.px += 200;
 		}
@@ -73,12 +115,31 @@ void ParticleSystem::initParticleSystem(){
 			p.px -= 200;
 		}
 
-		glm::vec3 speed = 4.0f * glm::cross(-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
+		glm::vec3 speed = 40.0f * glm::cross(-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 		
 		p.vx = speed.x;
 		p.vy = speed.y;
 		p.vz = speed.z;
-			
+
+		
+		/* DEBUG PLACEMENT */
+		/*
+		// Place particles in a single ring, easier to see if force calculation looks correct
+		r = 100.0f + (float) rand() / RAND_MAX * 0.01 * MAX_DISTANCE;
+
+		x = r * cos(phi);
+		y = 10.0f + r * sin(phi);
+		z = 0;
+
+		p.px = x;
+		p.py = y;
+		p.pz = z;
+
+		p.vx = 0.0f;
+		p.vy = 0.0f;
+		p.vz = 0.0f;
+		*/
+
 
 		ParticlesContainer[i] = p;
 
@@ -155,11 +216,11 @@ void ParticleSystem::renderBounds(Shader boxShader){
 	};
 
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindVertexArray(BoxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, BoxVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BoxEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -174,6 +235,39 @@ void ParticleSystem::renderBounds(Shader boxShader){
 
 }
 
+void ParticleSystem::calcTreeCOM(OctreeNode *node){
+	if (!node) return;
+
+	// If node is a leaf the mass and COM are the mass and COM of the data
+	if (node->getNoElements() == 1) return;
+
+	// If node is an empty cell
+	else {
+
+		node->usr_val = new Cell;
+		Cell *p = (Cell*)node->usr_val;
+		p->m = 0.0f; p->com_x = 0.0f; p->com_y = 0.0f; p->com_z = 0.0f;
+
+		// Step through the childrens to add their mass to this node
+		for (int i = 0; i < 8; i++){
+			if (node->getChild(i) != nullptr){
+				calcTreeCOM(node->getChild(i));
+				Cell *child_c = (Cell*)node->getChild(i)->usr_val;
+
+
+				//float child_mass = child_pt->mass;
+				p->m += child_c->m;
+				p->com_x += child_c->m*(child_c->com_x);
+				p->com_y += child_c->m*(child_c->com_y);
+				p->com_z += child_c->m*(child_c->com_z);
+			}
+		}
+		p->com_x /= p->m;
+		p->com_y /= p->m;
+		p->com_z /= p->m;
+	}
+}
+
 void ParticleSystem::buildTree(){
 	float minx, miny, minz, maxx, maxy, maxz;
 	getBounds(minx, maxx, miny, maxy, minz, maxz);
@@ -182,8 +276,18 @@ void ParticleSystem::buildTree(){
 	
 	for (int i = 0; i < MAX_PARTICLES; i++){
 		Particle p = ParticlesContainer[i];
-		root->insert(p.px, p.py, p.pz, nullptr);
+
+		Cell *c = new Cell;
+		c->m = p.weight;
+		c->com_x = p.px;
+		c->com_y = p.py;
+		c->com_z = p.pz;
+
+		root->insert(p.px, p.py, p.pz, c);
 	}
+
+	// Calculate centers of mass for the tree
+	calcTreeCOM(root);
 	
 }
 
@@ -223,8 +327,57 @@ void ParticleSystem::render(float dt){
 	glDisableVertexAttribArray(1);
 }
 
-void ParticleSystem::BarnesHutUpdateForces(float dt){
+void ParticleSystem::calcParticleForce(Particle &p, OctreeNode *node, float dt){
 
+	
+	if (!node) return ;
+
+	Cell *nodeData = (Cell*) node->usr_val;
+	
+	float dx = nodeData->com_x - p.px;
+	float dy = nodeData->com_y - p.py;
+	float dz = nodeData->com_z - p.pz;
+
+	float dist = sqrt(dx*dx + dy*dy + dz*dz);
+
+	if (dist == 0) return;
+
+	float width = ((node->max_x - node->min_x) +
+		(node->max_y - node->min_y) +
+		(node->max_z - node->min_z)) / 3;
+
+	// The node is far away enough to be evaluated as a single node
+	if (width / dist < 0.5){
+
+		float F = (9.82 * p.weight * nodeData->m) / (dist + 1.0f + SOFTENING * SOFTENING);
+
+		p.vx += F * dx / dist;
+		p.vy += F * dy / dist;
+		p.vz += F * dz / dist;
+	} 
+	
+	// The node is to close to be treated as a single particle and must be further traversed
+	else {
+		for (int i = 0; i < 8; i++){
+			calcParticleForce(p, node->getChild(i), dt);
+		}
+	}	
+	
+}
+
+void ParticleSystem::BarnesHutUpdateForces(float dt){
+	
+	
+	for (int i = 0; i < MAX_PARTICLES; i++){
+
+		Particle p = ParticlesContainer[i];
+		calcParticleForce(p, root, dt);
+		ParticlesContainer[i] = p;
+	}
+	
+
+	//updateForces(dt);
+	
 }
 
 // These functions should launch the kernels for the respective framework
@@ -265,11 +418,9 @@ void ParticleSystem::updateForces(float dt){
 
 }
 
-
-
 void ParticleSystem::updatePositions(float dt){
 
-	float simspeed = 0.01f;
+	float simspeed = 0.001f;
 
 
 	for (int i = 0; i < MAX_PARTICLES; i++){

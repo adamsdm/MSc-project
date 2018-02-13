@@ -10,6 +10,10 @@
 #include <sstream>
 #include <stdlib.h>
 
+#define DEBUG_PLACEMENT
+#define NO_PARTICLES	2*1024
+
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "Shader.h"
@@ -19,12 +23,10 @@
 #include "OctreeNode.h"
 
 
-#define NO_PARTICLES	1024
-
-
 // Global application state
 
 bool render_bounds = false;
+bool render_com = true;
 
 // Window dimensions
 unsigned int W = 1200;
@@ -72,6 +74,7 @@ int main() {
 
 	Shader particleShader("../Shaders/particleSystemVert.glsl", "../Shaders/particleSystemFrag.glsl");
 	Shader boxShader("../Shaders/boxVert.glsl", "../Shaders/boxFrag.glsl");
+	Shader comShader("../Shaders/boxVert.glsl", "../Shaders/boxFrag.glsl");
 
 	// ********************************* //
 	// ********* Setup Textures ******** //
@@ -123,19 +126,6 @@ int main() {
 	glm::mat4 view;
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 4000.0f);
 
-
-
-
-
-	GLuint BoxVBO, BoxVAO, BoxEBO;
-	glGenVertexArrays(1, &BoxVAO);
-	glGenBuffers(1, &BoxVBO);
-	glGenBuffers(1, &BoxEBO);
-
-
-
-
-
 	while (!glfwWindowShouldClose(window))
 	{
 		// Update time
@@ -184,13 +174,20 @@ int main() {
 		
 
 		if (render_bounds){
-
 			boxShader.use();
-
 			boxShader.setMat4("view", view);
 			boxShader.setMat4("projection", projection);
 			particlesystem.renderBounds(boxShader);
+		}
+
+
+		if (render_com){
+
+			comShader.use();
+			comShader.setMat4("view", view);
+			comShader.setMat4("projection", projection);
 			
+			particlesystem.renderCOM(particlesystem.getTree(), comShader);
 		}
 				
 		// IMPORTANT: Dealocate the tree, otherwise we get a huge memoryleak since new nodes are added recursively, resulting in an infinite tree

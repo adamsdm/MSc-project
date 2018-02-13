@@ -38,7 +38,10 @@ private:
 
 
 	// Box buffers
-	GLuint VBO, VAO, EBO;
+	GLuint BoxVBO, BoxVAO, BoxEBO;
+
+	// COM buffer
+	GLuint comVBO, comVAO;
 
 	// Data
 	Particle *ParticlesContainer;
@@ -50,13 +53,18 @@ private:
 	*/
 	void initParticleSystem();
 
+	
+	void buildTree();
+	void calcTreeCOM(OctreeNode *node);
+
 	/**
 	* Sequentially calculates the forces.
 	* @param dt delta time.
 	*/
-	void buildTree();
 	void updateForces(float dt);
 	void BarnesHutUpdateForces(float dt);
+	void calcParticleForce(Particle &p, OctreeNode *root, float dt);
+
 
 	/**
 	* Sequentially updates the positions.
@@ -80,6 +88,7 @@ public:
 	* Renders bounding box
 	*/
 	void renderBounds(Shader boxShader);
+	void renderCOM(OctreeNode *node, Shader comShader);
 	void renderCube();
 
 	/**

@@ -50,24 +50,6 @@ void OctreeNode::free(){
 }
 
 int OctreeNode::insert(float x, float y, float z, void *usr_data){
-	/*
-	if (no_elements == 0){
-		pos_x = x;
-		pos_y = y;
-		pos_z = z;
-		usr_val = usr_val;
-	}
-
-	// If node already contains data, make node into a cell
-	if (no_elements == 1){
-		printf("Node already has a element in the cell\n");
-		insert_sub(pos_x, pos_y, pos_z, usr_val);
-		usr_val = NULL;
-	}
-
-	no_elements++;
-	return no_elements;
-	*/
 
 	/* if this node is empty, it will be turned into a leaf by placing the
 	data directly inside of it */
@@ -75,7 +57,7 @@ int OctreeNode::insert(float x, float y, float z, void *usr_data){
 		pos_x = x;
 		pos_y = y;
 		pos_z = z;
-		usr_val = usr_val;
+		usr_val = usr_data;
 	}
 
 	/* handle a node that already contains data */
@@ -142,7 +124,7 @@ int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
 	if (!children[sub])
 		children[sub] = new OctreeNode(n_min_x, n_min_y, n_min_z, n_max_x, n_max_y, n_max_z);
 
-	return children[sub]->insert(x, y, z, usr_val);
+	return children[sub]->insert(x, y, z, usr_data);
 	
 }
 
