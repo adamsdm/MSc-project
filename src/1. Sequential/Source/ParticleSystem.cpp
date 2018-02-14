@@ -103,17 +103,19 @@ void ParticleSystem::initParticleSystem(){
 
 
 		// Setup particle
-		p.weight = 1.0f;
+		p.weight = 500000.0f;
 		p.px = x;
 		p.py = y;
 		p.pz = z;
 		
+		/*
 		if (i % 2 == 0){
 			p.px += 200;
 		}
 		else {
 			p.px -= 200;
-		}
+		}*/
+
 
 		glm::vec3 speed = 40.0f * glm::cross(-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
 		
@@ -123,7 +125,7 @@ void ParticleSystem::initParticleSystem(){
 
 		
 		/* DEBUG PLACEMENT */
-		/*
+		
 		// Place particles in a single ring, easier to see if force calculation looks correct
 		r = 100.0f + (float) rand() / RAND_MAX * 0.01 * MAX_DISTANCE;
 
@@ -138,7 +140,7 @@ void ParticleSystem::initParticleSystem(){
 		p.vx = 0.0f;
 		p.vy = 0.0f;
 		p.vz = 0.0f;
-		*/
+		
 
 
 		ParticlesContainer[i] = p;
@@ -349,7 +351,7 @@ void ParticleSystem::calcParticleForce(Particle &p, OctreeNode *node, float dt){
 	// The node is far away enough to be evaluated as a single node
 	if (width / dist < 0.5){
 
-		float F = (9.82 * p.weight * nodeData->m) / (dist + 1.0f + SOFTENING * SOFTENING);
+		float F = (G * p.weight * nodeData->m) / (dist + 1.0f + SOFTENING * SOFTENING);
 
 		p.vx += F * dx / dist;
 		p.vy += F * dy / dist;

@@ -13,6 +13,7 @@
 #include "OctreeNode.h"
 
 #define M_PI	3.14159265359
+#define G		6.672e-11F
 #define SOFTENING 1e-9f
 
 

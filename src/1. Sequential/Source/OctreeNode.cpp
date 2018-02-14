@@ -103,7 +103,7 @@ int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
 		sub += 2;
 		n_min_y = mid_y;
 		n_max_y = max_y;
-	}
+}	
 	else {
 		n_min_y = min_y;
 		n_max_y = mid_y;

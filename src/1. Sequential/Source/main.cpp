@@ -26,7 +26,7 @@
 // Global application state
 
 bool render_bounds = false;
-bool render_com = true;
+bool render_com = false;
 
 // Window dimensions
 unsigned int W = 1200;
