@@ -1,13 +1,6 @@
 ﻿#include "ParticleSystem.h"
 
 
-struct Cell {
-	float m;
-	float com_x;
-	float com_y;
-	float com_z;
-};
-
 ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 	MAX_PARTICLES = _MAX_PARTICLES;
 	// Quad vertices
@@ -281,7 +274,6 @@ void ParticleSystem::buildTree(){
 	getBounds(minx, maxx, miny, maxy, minz, maxz);
 
 	root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
-
 	
 	for (int i = 0; i < MAX_PARTICLES; i++){
 		Particle p = ParticlesContainer[i];

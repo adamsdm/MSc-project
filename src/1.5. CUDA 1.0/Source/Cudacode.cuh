@@ -8,6 +8,7 @@
 
 #include <glad/glad.h>
 #include "Particle.h"
+#include "Cell.h"
 #include "OctreeNode.h"
 
 

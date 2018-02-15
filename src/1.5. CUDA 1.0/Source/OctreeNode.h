@@ -11,7 +11,6 @@ private:
 	
 	OctreeNode* children[8];
 
-
 	// Array storing pointers to children
 	GLuint BoxVBO, BoxVAO, BoxEBO;
 

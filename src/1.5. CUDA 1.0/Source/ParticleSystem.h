@@ -13,6 +13,7 @@
 #include "Shader.h"
 #include "OctreeNode.h"
 #include "Particle.h"
+#include "Cell.h"
 #include "Cudacode.cuh"
 
 
