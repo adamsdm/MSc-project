@@ -304,6 +304,7 @@ void ParticleSystem::buildTree(){
 
 void ParticleSystem::flattenTree(OctreeNode *node){
 
+	
 	// Clear the nodeContainer so that it won't grow infinitly large
 	nodeContainer.clear();
 
@@ -329,13 +330,8 @@ void ParticleSystem::flattenTree(OctreeNode *node){
 		for (int i = 0; i < 8; i++){
 			if (temp_node->getChild(i)) {
 				q.push(temp_node->getChild(i));
-			} 
+			}
 		}
-	}
-
-
-	for (int i = 0; i < 10; i++){
-		printf("%d == %d?\n", container[i]->getNoElements(), nodeContainer[i]->getNoElements());
 	}
 }
 
@@ -345,9 +341,6 @@ void ParticleSystem::render(float dt){
 	BarnesHutUpdateForces(dt);
 	CUDACalcForces(root);
 	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
-
-	
-	
 
 		
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);

@@ -30,7 +30,7 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 	int size = MAX_PARTICLES * sizeof(Particle);
 	float buffer_size = MAX_PARTICLES * 3 * sizeof(GLfloat);
 	float simspeed = 0.01f;	// No more than ~0.1 for a stable simulation
-
+	
 	// Allocate memory
 	Particle *d_ParticlesContainer;
 	GLfloat *d_positions;
@@ -38,6 +38,9 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 	// Particle container
 	cudaMalloc((void**)&d_ParticlesContainer, size);
 	cudaMemcpy(d_ParticlesContainer, p_container, size, cudaMemcpyHostToDevice);
+
+	
+	
 	// Vertex buffer
 	cudaMalloc((void**)&d_positions, buffer_size);
 	cudaMemcpy(d_positions, g_particule_position_size_data, buffer_size, cudaMemcpyHostToDevice);
@@ -53,6 +56,10 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 	cudaMemcpy(p_container, d_ParticlesContainer, size, cudaMemcpyDeviceToHost);
 	cudaMemcpy(g_particule_position_size_data, d_positions, buffer_size, cudaMemcpyDeviceToHost);
 	
+
+	cudaFree(d_ParticlesContainer);
+	cudaFree(d_positions);
+
 }
 
 
@@ -62,6 +69,8 @@ __device__ struct Cell {
 	float com_y;
 	float com_z;
 };
+
+
 __global__ void updateForceKernel(OctreeNode *node){
 	
 	if (node->usr_val){
@@ -81,4 +90,8 @@ void CUDACalcForces(OctreeNode *node){
 	cudaMemcpy(d_usr_data, node->usr_val, sizeof(void*), cudaMemcpyHostToDevice);
 
 	updateForceKernel << <1, 1 >> >(d_node);
+	
+
+	cudaFree(d_node);
+	cudaFree(d_usr_data);
 }
