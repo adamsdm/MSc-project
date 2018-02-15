@@ -38,15 +38,15 @@ OctreeNode::~OctreeNode(){
 }
 
 void OctreeNode::free(){
+	
 	if(usr_val) delete usr_val;
 
 	for (int i = 0; i < 8; i++){
 		if (children[i])
 			children[i]->free();
 	}
-	
-	delete[] children;
 
+	delete[] children;
 }
 
 int OctreeNode::insert(float x, float y, float z, void *usr_data){

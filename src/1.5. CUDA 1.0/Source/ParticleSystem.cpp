@@ -48,6 +48,7 @@ ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 	glGenVertexArrays(1, &comVAO);
 	glGenBuffers(1, &comVBO);
 
+
 }
 
 void ParticleSystem::renderCOM(OctreeNode *node, Shader comShader){
@@ -90,6 +91,8 @@ void ParticleSystem::initParticleSystem(){
 	for (int i = 0; i < MAX_PARTICLES; i++) {
 
 		Particle p = ParticlesContainer[i];
+		
+
 		
 
 		phi = (float) rand() / RAND_MAX * 2.0f * M_PI;
@@ -271,8 +274,12 @@ void ParticleSystem::calcTreeCOM(OctreeNode *node){
 }
 
 void ParticleSystem::buildTree(){
+
+	
+
 	float minx, miny, minz, maxx, maxy, maxz;
 	getBounds(minx, maxx, miny, maxy, minz, maxz);
+
 	root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
 
 	
@@ -290,13 +297,53 @@ void ParticleSystem::buildTree(){
 
 	// Calculate centers of mass for the tree
 	calcTreeCOM(root);
+
+	flattenTree(root);
 	
+}
+
+void ParticleSystem::flattenTree(OctreeNode *node){
+
+	// Clear the nodeContainer so that it won't grow infinitly large
+	nodeContainer.clear();
+
+	int count = 0;
+
+	OctreeNode* container[10000];
+
+	
+	std::queue<OctreeNode*> q;
+
+	if (node) {
+		q.push(node);
+	}
+
+	while (!q.empty()) {
+		OctreeNode * temp_node = q.front();
+		
+		nodeContainer.push_back(temp_node);
+		container[count] = temp_node;
+		count++;
+		q.pop();
+		
+		for (int i = 0; i < 8; i++){
+			if (temp_node->getChild(i)) {
+				q.push(temp_node->getChild(i));
+			} 
+		}
+	}
+
+
+	for (int i = 0; i < 10; i++){
+		printf("%d == %d?\n", container[i]->getNoElements(), nodeContainer[i]->getNoElements());
+	}
 }
 
 void ParticleSystem::render(float dt){
 	
 	buildTree();
 	BarnesHutUpdateForces(dt);
+	CUDACalcForces(root);
 	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
 	

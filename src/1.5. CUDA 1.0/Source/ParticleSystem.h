@@ -7,6 +7,7 @@
 #include <amp_math.h>
 #include <glm/glm.hpp>
 #include <limits>
+#include <queue>
 
 #include "Camera.h"
 #include "Shader.h"
@@ -40,6 +41,7 @@ private:
 
 	// Data
 	Particle *ParticlesContainer;
+	std::vector<OctreeNode*> nodeContainer;
 	Shader *particleShader;
 	OctreeNode *root;
 
@@ -51,6 +53,12 @@ private:
 	
 	void buildTree();
 	void calcTreeCOM(OctreeNode *node);
+
+	/**
+	* Flattens the tree into a std::vector in a breadth first order
+	* @param *node root of tree
+	*/
+	void flattenTree(OctreeNode *node);
 
 	/**
 	* Sequentially calculates the forces.
@@ -81,8 +89,15 @@ public:
 	OctreeNode* getTree(){ return root; }
 	/**
 	* Renders bounding box
+	* @param boxShader shader to be used when rendering bounds
 	*/
 	void renderBounds(Shader boxShader);
+
+	/**
+	* Renders COM
+	* @param *node pointer to root of tree
+	* @param comShader shader to be used when rendering bounds
+	*/
 	void renderCOM(OctreeNode *node, Shader comShader);
 	void renderCube();
 

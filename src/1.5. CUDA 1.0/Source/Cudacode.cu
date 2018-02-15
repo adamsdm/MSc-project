@@ -1,5 +1,7 @@
 #include "Cudacode.cuh"
 
+
+
 __global__ void updatePositionKernel(GLfloat *g_particule_position_size_data, Particle *ParticlesContainer, int MAX_PARTICLES, float dt, float simspeed){
 
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -51,4 +53,32 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 	cudaMemcpy(p_container, d_ParticlesContainer, size, cudaMemcpyDeviceToHost);
 	cudaMemcpy(g_particule_position_size_data, d_positions, buffer_size, cudaMemcpyDeviceToHost);
 	
+}
+
+
+__device__ struct Cell {
+	float m;
+	float com_x;
+	float com_y;
+	float com_z;
+};
+__global__ void updateForceKernel(OctreeNode *node){
+	
+	if (node->usr_val){
+		Cell *c = (Cell*) node->usr_val;
+	}
+
+}
+
+void CUDACalcForces(OctreeNode *node){
+	
+	OctreeNode *d_node;
+	cudaMalloc((void**)&d_node, sizeof(OctreeNode));
+	cudaMemcpy(d_node, node, sizeof(OctreeNode), cudaMemcpyHostToDevice);
+
+	void* d_usr_data;
+	cudaMalloc((void**) &d_usr_data, sizeof(void*));
+	cudaMemcpy(d_usr_data, node->usr_val, sizeof(void*), cudaMemcpyHostToDevice);
+
+	updateForceKernel << <1, 1 >> >(d_node);
 }

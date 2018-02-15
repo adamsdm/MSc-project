@@ -55,7 +55,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main() {
 
-
 	// Create a window
 	GLFWwindow* window = App::initialize(W, H);
 	if (!window) {

@@ -2,21 +2,23 @@
 #include <glad/glad.h>
 #include <stdio.h>
 #include <glm/glm.hpp>
+#include <vector>
 
 #include "Shader.h"
 
 class OctreeNode {
 private:
 	
-	// Array storing pointers to children
 	OctreeNode* children[8];
+
+
+	// Array storing pointers to children
 	GLuint BoxVBO, BoxVAO, BoxEBO;
 
 	// Position of this node if node is a leaf (particle)
 	float pos_y;
 	float pos_x;
 	float pos_z;
-
 	
 
 	// Number of leaves contained in this node
