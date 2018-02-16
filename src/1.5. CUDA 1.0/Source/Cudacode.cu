@@ -84,14 +84,9 @@ void CUDACalcForces(OctreeNode *node){
 	OctreeNode *d_node;
 	gpuErrchk(cudaMalloc((void**)&d_node, sizeof(OctreeNode)));
 	gpuErrchk(cudaMemcpy(d_node, node, sizeof(OctreeNode), cudaMemcpyHostToDevice));
-	
-	void* d_usr_data;
-	gpuErrchk(cudaMalloc((void**)&d_usr_data, sizeof(void*)));
-	gpuErrchk(cudaMemcpy(d_usr_data, node->usr_val, sizeof(void*), cudaMemcpyHostToDevice));
 
 	updateForceKernel <<<1, 1 >>>(d_node);
 	
 
 	cudaFree(d_node);
-	cudaFree(d_usr_data);
 }

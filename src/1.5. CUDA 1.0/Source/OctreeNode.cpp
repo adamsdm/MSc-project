@@ -29,7 +29,11 @@ OctreeNode::OctreeNode(float _min_x, float _min_y, float _min_z,
 		children[i] = NULL;
 	}
 	
-	usr_val = nullptr;
+	m = NULL;
+	com_x = NULL;
+	com_y = NULL;
+	com_z = NULL;
+
 	no_elements = 0;
 }
 
@@ -39,8 +43,6 @@ OctreeNode::~OctreeNode(){
 
 void OctreeNode::free(){
 	
-	if(usr_val) delete usr_val;
-
 	for (int i = 0; i < 8; i++){
 		if (children[i])
 			children[i]->free();
@@ -49,7 +51,7 @@ void OctreeNode::free(){
 	delete[] children;
 }
 
-int OctreeNode::insert(float x, float y, float z, void *usr_data){
+int OctreeNode::insert(float x, float y, float z, float pmass, float pcom_x, float pcom_y, float pcom_z){
 
 	/* if this node is empty, it will be turned into a leaf by placing the
 	data directly inside of it */
@@ -57,7 +59,11 @@ int OctreeNode::insert(float x, float y, float z, void *usr_data){
 		pos_x = x;
 		pos_y = y;
 		pos_z = z;
-		usr_val = usr_data;
+
+		m = pmass;
+		com_x = pcom_x;
+		com_y = pcom_y;
+		com_z = pcom_z;
 	}
 
 	/* handle a node that already contains data */
@@ -65,13 +71,16 @@ int OctreeNode::insert(float x, float y, float z, void *usr_data){
 		/* If this node is a leaf, take its position and place it in the
 		appropriate child, no longer making this a leaf */
 		if (no_elements == 1) {
-			insert_sub(pos_x, pos_y, pos_z, usr_val);
-			usr_val = NULL;
+			insert_sub(pos_x, pos_y, pos_z, m, com_x, com_y, com_z);
+			m = NULL;
+			com_x = NULL;
+			com_y = NULL;
+			com_z = NULL;
 		}
 
 		/* Since this node is occupied, recursively add the data to the
 		appropriate child node */
-		insert_sub(x, y, z, usr_data);
+		insert_sub(x, y, z, pmass, pcom_x, pcom_y, pcom_z);
 	}
 	/* A data point was inserted into this node, therefor the element count
 	must be incremented */
@@ -79,7 +88,7 @@ int OctreeNode::insert(float x, float y, float z, void *usr_data){
 	return no_elements;
 }
 
-int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
+int OctreeNode::insert_sub(float x, float y, float z, float pmass, float pcom_x, float pcom_y, float pcom_z){
 	int sub = 0;
 
 	// New boudns to be inserted into child node
@@ -124,7 +133,7 @@ int OctreeNode::insert_sub(float x, float y, float z, void* usr_data){
 	if (!children[sub])
 		children[sub] = new OctreeNode(n_min_x, n_min_y, n_min_z, n_max_x, n_max_y, n_max_z);
 
-	return children[sub]->insert(x, y, z, usr_data);
+	return children[sub]->insert(x, y, z, pmass, pcom_x, pcom_y, pcom_z);
 	
 }
 
@@ -135,7 +144,6 @@ void OctreeNode::setModelAndRender(Shader boxShader){
 			children[i]->setModelAndRender(boxShader);
 	}
 
-	
 
 	glm::vec3 size = 0.5f*glm::vec3(max_x - min_x, max_y - min_y, max_z - min_z);
 	glm::vec3 center = glm::vec3(mid_x, mid_y, mid_z);

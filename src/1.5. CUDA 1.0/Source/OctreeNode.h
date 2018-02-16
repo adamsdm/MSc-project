@@ -25,7 +25,7 @@ private:
 
 
 	// Helper function to insert the node in the correct position
-	int insert_sub(float x, float y, float z, void *usr_data);
+	int insert_sub(float x, float y, float z, float pmass, float pcom_x, float pcom_y, float pcom_z);
 
 
 	
@@ -45,8 +45,11 @@ public:
 	float mid_y;
 	float mid_z;
 
-	// Pointer to used defined data
-	void *usr_val;
+
+	float m;
+	float com_x;
+	float com_y;
+	float com_z;
 	
 	OctreeNode(){ ; };
 	OctreeNode(float min_x, float min_y, float min_z,
@@ -63,6 +66,6 @@ public:
 	void setModelAndRender(Shader boxShader);
 
 	// Inserts a node into this octree
-	int insert(float x, float y, float z, void *usr_val);
+	int insert(float x, float y, float z, float mass, float com_x, float com_y, float com_z);
 	void free();
 };
