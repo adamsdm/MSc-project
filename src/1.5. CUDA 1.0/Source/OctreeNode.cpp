@@ -38,17 +38,17 @@ OctreeNode::OctreeNode(float _min_x, float _min_y, float _min_z,
 }
 
 OctreeNode::~OctreeNode(){
-	free();
+	freeTree();
 }
 
-void OctreeNode::free(){
+void OctreeNode::freeTree(){
 	
 	for (int i = 0; i < 8; i++){
 		if (children[i])
-			children[i]->free();
+			children[i]->freeTree();
 	}
 
-	delete[] children;
+	free(children);
 }
 
 int OctreeNode::insert(float x, float y, float z, float pmass, float pcom_x, float pcom_y, float pcom_z){

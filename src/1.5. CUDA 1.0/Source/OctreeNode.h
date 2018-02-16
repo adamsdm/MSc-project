@@ -7,31 +7,9 @@
 #include "Shader.h"
 
 class OctreeNode {
-private:
-	
+public:
 	OctreeNode* children[8];
 
-	// Array storing pointers to children
-	GLuint BoxVBO, BoxVAO, BoxEBO;
-
-	// Position of this node if node is a leaf (particle)
-	float pos_y;
-	float pos_x;
-	float pos_z;
-	
-
-	// Number of leaves contained in this node
-	int no_elements;
-
-
-	// Helper function to insert the node in the correct position
-	int insert_sub(float x, float y, float z, float pmass, float pcom_x, float pcom_y, float pcom_z);
-
-
-	
-	
-
-public:
 	// Bounds
 	float min_x;
 	float min_y;
@@ -50,14 +28,14 @@ public:
 	float com_x;
 	float com_y;
 	float com_z;
-	
+
 	OctreeNode(){ ; };
 	OctreeNode(float min_x, float min_y, float min_z,
-				float max_x, float max_y, float max_z);
+		float max_x, float max_y, float max_z);
 
 	~OctreeNode();
 
-	int getNoElements(){ return no_elements;  }
+	int getNoElements(){ return no_elements; }
 
 	OctreeNode *getChild(int index){ return children[index]; }
 
@@ -67,5 +45,24 @@ public:
 
 	// Inserts a node into this octree
 	int insert(float x, float y, float z, float mass, float com_x, float com_y, float com_z);
-	void free();
+	void freeTree();
+
+
+private:
+
+	// Array storing pointers to children
+	GLuint BoxVBO, BoxVAO, BoxEBO;
+
+	// Position of this node if node is a leaf (particle)
+	float pos_y;
+	float pos_x;
+	float pos_z;
+	
+
+	// Number of leaves contained in this node
+	int no_elements;
+
+
+	// Helper function to insert the node in the correct position
+	int insert_sub(float x, float y, float z, float pmass, float pcom_x, float pcom_y, float pcom_z);
 };

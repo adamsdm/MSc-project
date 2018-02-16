@@ -1,7 +1,7 @@
 ﻿#include "ParticleSystem.h"
 
 
-ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
+ParticleSystem::ParticleSystem(const unsigned int const _MAX_PARTICLES) {
 	MAX_PARTICLES = _MAX_PARTICLES;
 	// Quad vertices
 	GLfloat g_vertex_buffer_data[] = {
@@ -11,6 +11,8 @@ ParticleSystem::ParticleSystem(const unsigned int _MAX_PARTICLES) {
 		0.5f, 0.5f, 0.0f,
 	};
 	g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
+
+	nodeContainer = new OctreeNode[4 * MAX_PARTICLES];
 
 
 	// Create share
@@ -275,43 +277,31 @@ void ParticleSystem::buildTree(){
 	getBounds(minx, maxx, miny, maxy, minz, maxz);
 
 	root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
-	
+
+
 	for (int i = 0; i < MAX_PARTICLES; i++){
 		Particle p = ParticlesContainer[i];
 
 		
 		root->insert(p.px, p.py, p.pz, p.weight, p.px, p.py, p.pz);
 	}
-
-	// Calculate centers of mass for the tree
-	calcTreeCOM(root);
-
-	flattenTree(root);
-	
 }
 
 void ParticleSystem::flattenTree(OctreeNode *node){
-
 	
-	// Clear the nodeContainer so that it won't grow infinitly large
-	nodeContainer.clear();
-
 	int count = 0;
-
-	OctreeNode* container[10000];
-
-	
 	std::queue<OctreeNode*> q;
 
 	if (node) {
 		q.push(node);
 	}
 
+
 	while (!q.empty()) {
 		OctreeNode * temp_node = q.front();
 		
-		nodeContainer.push_back(temp_node);
-		container[count] = temp_node;
+
+		nodeContainer[count] = *temp_node;
 		count++;
 		q.pop();
 		
@@ -321,13 +311,17 @@ void ParticleSystem::flattenTree(OctreeNode *node){
 			}
 		}
 	}
+	
 }
 
 void ParticleSystem::render(float dt){
 	
 	buildTree();
+	calcTreeCOM(root);
+	flattenTree(root);
+
 	BarnesHutUpdateForces(dt);
-	CUDACalcForces(root);
+	CUDACalcForces(nodeContainer);
 	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
 		

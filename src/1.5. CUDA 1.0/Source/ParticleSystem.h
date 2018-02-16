@@ -33,7 +33,6 @@ private:
 	GLfloat* g_particule_position_size_data;
 	static const GLfloat g_vertex_buffer_data[];
 
-
 	// Box buffers
 	GLuint BoxVBO, BoxVAO, BoxEBO;
 
@@ -42,7 +41,8 @@ private:
 
 	// Data
 	Particle *ParticlesContainer;
-	std::vector<OctreeNode*> nodeContainer;
+	OctreeNode* nodeContainer;
+
 	Shader *particleShader;
 	OctreeNode *root;
 
