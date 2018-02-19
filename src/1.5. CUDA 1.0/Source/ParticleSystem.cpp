@@ -105,13 +105,13 @@ void ParticleSystem::initParticleSystem(){
 		p.py = y;
 		p.pz = z;
 		
-		/*
+		
 		if (i % 2 == 0){
 			p.px += 200;
 		}
 		else {
 			p.px -= 200;
-		}*/
+		}
 
 
 		glm::vec3 speed = 40.0f * glm::cross(-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
@@ -122,7 +122,7 @@ void ParticleSystem::initParticleSystem(){
 
 		
 		/* DEBUG PLACEMENT */
-		
+		/*
 		// Place particles in a single ring, easier to see if force calculation looks correct
 		r = 100.0f + (float) rand() / RAND_MAX * 0.01 * MAX_DISTANCE;
 
@@ -137,7 +137,7 @@ void ParticleSystem::initParticleSystem(){
 		p.vx = 0.0f;
 		p.vy = 0.0f;
 		p.vz = 0.0f;
-		
+		*/
 
 
 		ParticlesContainer[i] = p;
@@ -335,8 +335,8 @@ void ParticleSystem::render(float dt){
 	int count = 0;
 	flattenTree(root, count);
 
-	BarnesHutUpdateForces(dt);
-	CUDACalcForces(nodeContainer, count);
+	//BarnesHutUpdateForces(dt);
+	CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
 	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
 		
