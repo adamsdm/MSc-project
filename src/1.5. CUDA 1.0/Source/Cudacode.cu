@@ -24,7 +24,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 	}
 }
 
-
 __global__ void updatePositionKernel(GLfloat *g_particule_position_size_data, Particle *ParticlesContainer, int MAX_PARTICLES, float dt, float simspeed){
 
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -84,8 +83,6 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 	cudaFree(d_positions);
 
 }
-
-
 
 
 
@@ -152,6 +149,7 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	OctreeNode *d_node_container;
 	Particle *d_particle_container;
 
+
 	gpuErrchk(cudaMalloc((void**)&d_particle_container, MAX_PARTICLES * sizeof(Particle)));
 	gpuErrchk(cudaMemcpy(d_particle_container, ParticlesContainer, MAX_PARTICLES * sizeof(Particle), cudaMemcpyHostToDevice));
 
@@ -162,5 +160,8 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	dim3 dimBlock(1024);
 	updateForceKernel << <dimGrid, dimBlock >> > (d_particle_container, d_node_container, MAX_PARTICLES, dt);
 
-	gpuErrchk(cudaMemcpy(ParticlesContainer, d_particle_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyDeviceToHost));
+	gpuErrchk((cudaMemcpy(ParticlesContainer, d_particle_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyDeviceToHost)));
+	
+	gpuErrchk(cudaFree(d_node_container));
+	gpuErrchk(cudaFree(d_particle_container));
 }

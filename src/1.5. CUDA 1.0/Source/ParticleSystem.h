@@ -15,6 +15,7 @@
 #include "Particle.h"
 #include "Cell.h"
 #include "Cudacode.cuh"
+#include "MyTimer.h"
 
 
 #define M_PI	3.14159265359

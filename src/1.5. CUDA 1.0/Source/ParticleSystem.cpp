@@ -314,7 +314,6 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 
 
 	for (int j = 0; j < count; j++){
-
 		for (int i = 0; i < 8; i++){
 
 			if (nodeContainer[j].children[i]){
@@ -329,17 +328,37 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 
 void ParticleSystem::render(float dt){
 	
+	std::chrono::high_resolution_clock::time_point start, tBuildTree, tCalcCOM, tFlatten, tCalcForces, tUpdPos;
+
+	// Start timer
+	start = MyTimer::getTime();
+
 	buildTree();
+	tBuildTree = MyTimer::getTime(); // get time
+
 	calcTreeCOM(root);
+	tCalcCOM = MyTimer::getTime(); // get time
 
 	int count = 0;
+	
 	flattenTree(root, count);
+	tFlatten = MyTimer::getTime(); // get time
 
-	//BarnesHutUpdateForces(dt);
 	CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
-	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
+	tCalcForces = MyTimer::getTime();
 
-		
+	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
+	tUpdPos = MyTimer::getTime();
+
+	std::cout << "Build tree: \t" << MyTimer::getDeltaTimeMS(start, tBuildTree) << std::endl;
+	std::cout << "Compu. COM: \t" << MyTimer::getDeltaTimeMS(tBuildTree, tCalcCOM) << std::endl;
+	std::cout << "Flat. tree: \t" << MyTimer::getDeltaTimeMS(tCalcCOM, tFlatten) << std::endl;
+	std::cout << "Cal. force: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCalcForces) << std::endl;
+	std::cout << "Upd. posit: \t" << MyTimer::getDeltaTimeMS(tCalcForces, tUpdPos) << std::endl << std::endl;
+	
+
+
+
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
 	glBufferSubData(GL_ARRAY_BUFFER, 0, MAX_PARTICLES * sizeof(GLfloat) * 4, g_particule_position_size_data);

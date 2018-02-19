@@ -10,6 +10,7 @@
 #include "Particle.h"
 #include "Cell.h"
 #include "OctreeNode.h"
+#include "MyTimer.h"
 
 
 void CUDAUpdatePositions(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt);
