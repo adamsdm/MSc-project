@@ -287,9 +287,9 @@ void ParticleSystem::buildTree(){
 	}
 }
 
-void ParticleSystem::flattenTree(OctreeNode *node){
+void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 	
-	int count = 0;
+	count = 0;
 	std::queue<OctreeNode*> q;
 
 	if (node) {
@@ -300,7 +300,7 @@ void ParticleSystem::flattenTree(OctreeNode *node){
 	while (!q.empty()) {
 		OctreeNode * temp_node = q.front();
 		
-
+		temp_node->index = count;
 		nodeContainer[count] = *temp_node;
 		count++;
 		q.pop();
@@ -311,17 +311,32 @@ void ParticleSystem::flattenTree(OctreeNode *node){
 			}
 		}
 	}
-	
+
+
+	for (int j = 0; j < count; j++){
+
+		for (int i = 0; i < 8; i++){
+
+			if (nodeContainer[j].children[i]){
+				nodeContainer[j].childIndices[i] = nodeContainer[j].children[i]->index;
+			}
+			else {
+				nodeContainer[j].childIndices[i] = NULL;
+			}
+		}
+	}
 }
 
 void ParticleSystem::render(float dt){
 	
 	buildTree();
 	calcTreeCOM(root);
-	flattenTree(root);
+
+	int count = 0;
+	flattenTree(root, count);
 
 	BarnesHutUpdateForces(dt);
-	CUDACalcForces(nodeContainer);
+	CUDACalcForces(nodeContainer, count);
 	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
 		

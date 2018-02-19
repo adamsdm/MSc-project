@@ -75,62 +75,36 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 
 
 
-struct point
-{
-	float a;
-	point *lChild = nullptr;
-	point *rChild = nullptr;
-};
+
+
 
 
 __global__ void updateForceKernel(OctreeNode *nodeContainer){
 	
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	
+	
+	for (int i = 0; i < 8; i++){
+		int cInd = nodeContainer[0].childIndices[i];
+		
+		printf("%f, ", nodeContainer[cInd].min_x);
+	}
+
+	printf("\n");
+	
+
 }
 
-__global__ void testKernel(point *p)
-{
-	//printf("%f\n", p[0].lChild->a);
-}
+void CUDACalcForces(OctreeNode nodeContainer[], int count){
 
-void CUDACalcForces(OctreeNode nodeContainer[]){
-	
-	int SIZE = 3;
-
-	point *pointArray = (point*)malloc(SIZE * sizeof(point));
-	point *d_pointArray;
-
-	
-	pointArray[0].a = 0.0f;
-	pointArray[1].a = 1.1f;
-	pointArray[2].a = 2.2f;
-
-	pointArray[0].lChild = &pointArray[1];
-	pointArray[0].lChild = &pointArray[2];
-
-	cudaMalloc((void**)&d_pointArray, SIZE * sizeof(point));
-	cudaMemcpy(d_pointArray, pointArray, SIZE * sizeof(point), cudaMemcpyHostToDevice);
-
-	
-	
-
-	// launch kernel
-	testKernel << <1, 1 >> >(d_pointArray);
-
-
-	// deallocate memory
-	free(pointArray);
-	cudaFree(d_pointArray);
+	OctreeNode *d_container;
 
 
 
-	/*
-	OctreeNode* d_nodeContainer;
-	gpuErrchk(cudaMalloc((void**)&d_nodeContainer, 4 * 2048 * sizeof(OctreeNode)));
-	gpuErrchk(cudaMemcpy(d_nodeContainer, nodeContainer, 4 * 2048 * sizeof(OctreeNode), cudaMemcpyHostToDevice));
-	updateForceKernel <<<1, 1 >>>(d_nodeContainer);
-	
-	cudaFree(d_nodeContainer);
-	*/
 
+	gpuErrchk(cudaMalloc((void**)&d_container, count * sizeof(OctreeNode)));
+	gpuErrchk(cudaMemcpy(d_container, nodeContainer, count*sizeof(OctreeNode), cudaMemcpyHostToDevice)) ;
+
+	updateForceKernel << <1, 1 >> > (d_container);
 
 }

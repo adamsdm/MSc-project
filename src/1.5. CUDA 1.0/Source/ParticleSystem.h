@@ -59,7 +59,7 @@ private:
 	* Flattens the tree into a std::vector in a breadth first order
 	* @param *node root of tree
 	*/
-	void flattenTree(OctreeNode *node);
+	void flattenTree(OctreeNode *node, int &count);
 
 	/**
 	* Sequentially calculates the forces.

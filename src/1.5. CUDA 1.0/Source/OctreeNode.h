@@ -10,6 +10,10 @@ class OctreeNode {
 public:
 	OctreeNode* children[8];
 
+	// Index of this node used when flattening the tree
+	unsigned int index;
+	unsigned int childIndices[8];
+
 	// Bounds
 	float min_x;
 	float min_y;
