@@ -87,7 +87,7 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 
 
 
-__device__ void devCalcParticleForce(Particle *p, OctreeNode *node, OctreeNode *nodeContainer, float dt){
+__device__ void devRecCalcParticleForce(Particle *p, OctreeNode *node, OctreeNode *nodeContainer, float dt){
 
 	if (!node) return;
 
@@ -118,13 +118,21 @@ __device__ void devCalcParticleForce(Particle *p, OctreeNode *node, OctreeNode *
 
 	// The node is to close to be treated as a single particle and must be further traversed
 	else {
-		for (int i = 0; i < 8; i++){
-			int cInd = node->childIndices[i];
-			if (cInd)
-				devCalcParticleForce(p, &nodeContainer[cInd], nodeContainer, dt);
-		}
+		if (node->childIndices[0]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[0]], nodeContainer, dt);
+		if (node->childIndices[1]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[1]], nodeContainer, dt);
+		if (node->childIndices[2]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[2]], nodeContainer, dt);
+		if (node->childIndices[3]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[3]], nodeContainer, dt);
+		if (node->childIndices[4]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[4]], nodeContainer, dt);
+		if (node->childIndices[5]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[5]], nodeContainer, dt);
+		if (node->childIndices[6]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[6]], nodeContainer, dt);
+		if (node->childIndices[7]) devRecCalcParticleForce(p, &nodeContainer[node->childIndices[7]], nodeContainer, dt);
 	}
 	
+}
+
+__device__ void devIterativeCalcParticleForce(Particle *p, OctreeNode *node, float dt){
+	
+
 }
 
 __global__ void updateForceKernel(Particle *ParticlesContainer, OctreeNode *nodeContainer, int MAX_PARTICLES, float dt){
@@ -134,7 +142,7 @@ __global__ void updateForceKernel(Particle *ParticlesContainer, OctreeNode *node
 
 	if (i < MAX_PARTICLES){
 		Particle *p = &ParticlesContainer[i];
-		devCalcParticleForce(p, &nodeContainer[0], nodeContainer, dt);
+		devIterativeCalcParticleForce(p, nodeContainer, dt);
 		
 	}
 }
@@ -149,6 +157,7 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	OctreeNode *d_node_container;
 	Particle *d_particle_container;
 
+	std::chrono::high_resolution_clock::time_point t0, t1;
 
 	gpuErrchk(cudaMalloc((void**)&d_particle_container, MAX_PARTICLES * sizeof(Particle)));
 	gpuErrchk(cudaMemcpy(d_particle_container, ParticlesContainer, MAX_PARTICLES * sizeof(Particle), cudaMemcpyHostToDevice));
@@ -156,9 +165,15 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	gpuErrchk(cudaMalloc((void**)&d_node_container, count * sizeof(OctreeNode)));
 	gpuErrchk(cudaMemcpy(d_node_container, nodeContainer, count*sizeof(OctreeNode), cudaMemcpyHostToDevice));
 
+
+
 	dim3 dimGrid(MAX_PARTICLES / 1024);
 	dim3 dimBlock(1024);
-	updateForceKernel << <dimGrid, dimBlock >> > (d_particle_container, d_node_container, MAX_PARTICLES, dt);
+
+
+	updateForceKernel <<<1, 1 >>> (d_particle_container, d_node_container, MAX_PARTICLES, dt);
+	cudaThreadSynchronize();
+
 
 	gpuErrchk((cudaMemcpy(ParticlesContainer, d_particle_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyDeviceToHost)));
 	

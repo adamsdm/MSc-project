@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #define DEBUG_PLACEMENT
-#define NO_PARTICLES	20*1024
+#define NO_PARTICLES	10*1024
 
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -169,7 +169,7 @@ int main() {
 
 		
 		// Render particle system
-		particlesystem.render(deltaTime);
+		particlesystem.render(0.1f/*deltaTime*/);
 		
 
 		if (render_bounds){

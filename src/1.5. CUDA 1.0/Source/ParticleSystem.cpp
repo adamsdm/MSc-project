@@ -105,13 +105,14 @@ void ParticleSystem::initParticleSystem(){
 		p.py = y;
 		p.pz = z;
 		
-		
+		/*
 		if (i % 2 == 0){
 			p.px += 200;
 		}
 		else {
 			p.px -= 200;
 		}
+		*/
 
 
 		glm::vec3 speed = 40.0f * glm::cross(-glm::vec3(p.px, p.py, p.pz), glm::vec3(0.0, 0.0, 1.0));
@@ -122,7 +123,7 @@ void ParticleSystem::initParticleSystem(){
 
 		
 		/* DEBUG PLACEMENT */
-		/*
+		
 		// Place particles in a single ring, easier to see if force calculation looks correct
 		r = 100.0f + (float) rand() / RAND_MAX * 0.01 * MAX_DISTANCE;
 
@@ -137,7 +138,7 @@ void ParticleSystem::initParticleSystem(){
 		p.vx = 0.0f;
 		p.vy = 0.0f;
 		p.vz = 0.0f;
-		*/
+		
 
 
 		ParticlesContainer[i] = p;
@@ -272,19 +273,24 @@ void ParticleSystem::calcTreeCOM(OctreeNode *node){
 void ParticleSystem::buildTree(){
 
 	
+	std::chrono::high_resolution_clock::time_point t0, t1, t2, t3;
+
 
 	float minx, miny, minz, maxx, maxy, maxz;
-	getBounds(minx, maxx, miny, maxy, minz, maxz);
 
+	t0 = MyTimer::getTime();
+	getBounds(minx, maxx, miny, maxy, minz, maxz);
+	t1 = MyTimer::getTime();
+
+	t2 = MyTimer::getTime();
 	root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
 
 
 	for (int i = 0; i < MAX_PARTICLES; i++){
 		Particle p = ParticlesContainer[i];
-
-		
 		root->insert(p.px, p.py, p.pz, p.weight, p.px, p.py, p.pz);
 	}
+	t3 = MyTimer::getTime();
 }
 
 void ParticleSystem::flattenTree(OctreeNode *node, int &count){
@@ -335,26 +341,26 @@ void ParticleSystem::render(float dt){
 
 	buildTree();
 	tBuildTree = MyTimer::getTime(); // get time
+	std::cout << "Build tree: \t" << MyTimer::getDeltaTimeMS(start, tBuildTree) << std::endl;
 
 	calcTreeCOM(root);
 	tCalcCOM = MyTimer::getTime(); // get time
+	std::cout << "Compu. COM: \t" << MyTimer::getDeltaTimeMS(tBuildTree, tCalcCOM) << std::endl;
 
 	int count = 0;
 	
 	flattenTree(root, count);
 	tFlatten = MyTimer::getTime(); // get time
+	std::cout << "Flat. tree: \t" << MyTimer::getDeltaTimeMS(tCalcCOM, tFlatten) << std::endl;
 
 	CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
 	tCalcForces = MyTimer::getTime();
+	std::cout << "Cal. force: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCalcForces) << std::endl;
 
 	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 	tUpdPos = MyTimer::getTime();
-
-	std::cout << "Build tree: \t" << MyTimer::getDeltaTimeMS(start, tBuildTree) << std::endl;
-	std::cout << "Compu. COM: \t" << MyTimer::getDeltaTimeMS(tBuildTree, tCalcCOM) << std::endl;
-	std::cout << "Flat. tree: \t" << MyTimer::getDeltaTimeMS(tCalcCOM, tFlatten) << std::endl;
-	std::cout << "Cal. force: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCalcForces) << std::endl;
 	std::cout << "Upd. posit: \t" << MyTimer::getDeltaTimeMS(tCalcForces, tUpdPos) << std::endl << std::endl;
+
 	
 
 
