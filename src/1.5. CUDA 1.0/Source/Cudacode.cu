@@ -85,8 +85,6 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 }
 
 
-
-
 __device__ void devRecCalcParticleForce(Particle *p, OctreeNode *node, OctreeNode *nodeContainer, float dt){
 
 	if (!node) return;
@@ -130,7 +128,130 @@ __device__ void devRecCalcParticleForce(Particle *p, OctreeNode *node, OctreeNod
 	
 }
 
-__device__ void devIterativeCalcParticleForce(Particle *p, OctreeNode *node, float dt){
+// https://gist.github.com/mycodeschool/7331785
+__device__ struct MyQueue {
+	static const int MAX_SIZE = 10000;
+	int f = -1, r = -1;
+	int A[MAX_SIZE];	// TODO: More dynamic array size
+
+	
+	__device__ bool empty() {
+		return (f == -1 && r == -1);
+	}
+
+	__device__ bool isFull() {
+		return (r + 1) % MAX_SIZE == f ? true : false;
+	}
+
+	__device__ void push(int x)
+	{
+		if (isFull())
+		{
+			printf("Error: Queue is Full\n");
+			return;
+		}
+		if (empty())
+		{
+			f = r = 0;
+		}
+		else
+		{
+			r = (r + 1) % MAX_SIZE;
+		}
+		A[r] = x;
+	}
+
+	__device__ void pop()
+	{
+		if (empty())
+		{
+			printf("Error: Queue is Empty\n");
+			return;
+		}
+		else if (f == r)
+		{
+			r = f = -1;
+		}
+		else
+		{
+			f = (f + 1) % MAX_SIZE;
+		}
+	}
+
+	__device__ int front()
+	{
+		if (f == -1)
+		{
+			printf("Error: cannot return front from empty queue\n");
+			return -1;
+		}
+		return A[f];
+	}
+
+	__device__ void print()
+	{
+		// Finding number of elements in queue  
+		int count = (r + MAX_SIZE - f) % MAX_SIZE + 1;
+		printf("Queue       : ");
+		for (int i = 0; i <count; i++)
+		{
+			int index = (f + i) % MAX_SIZE; // Index of element while travesing circularly from front
+			printf("%d ", A[index]);
+		}
+		printf("\n\n");
+	}
+};
+
+__device__ void devIterativeCalcParticleForce(Particle *p, OctreeNode *nodeContainer, float dt) {
+
+	MyQueue q;
+
+	// start by pushing the root, nodeContainer[0].index = 0
+	q.push(nodeContainer[0].index);
+
+	while (!q.empty()) {
+
+		OctreeNode *node = &nodeContainer[q.front()];
+		q.pop();
+
+		float dx = node->com_x - p->px;
+		float dy = node->com_y - p->py;
+		float dz = node->com_z - p->pz;
+
+		float dist = sqrt(dx*dx + dy*dy + dz*dz);
+
+		if (dist == 0) return;
+
+
+		float width = ((node->max_x - node->min_x) +
+			(node->max_y - node->min_y) +
+			(node->max_z - node->min_z)) / 3;
+
+		// The node is far away enough to be evaluated as a single node
+		if (width / dist < 0.5) {
+
+			float F = (G * p->weight * node->m) / (dist + 1.0f + SOFTENING * SOFTENING);
+
+			p->vx += F * dx / dist;
+			p->vy += F * dy / dist;
+			p->vz += F * dz / dist;
+		}
+
+
+
+		// The node is to close to be treated as a single particle and must be further traversed
+		else {
+			if (node->childIndices[0]) q.push(node->childIndices[0]);
+			if (node->childIndices[1]) q.push(node->childIndices[1]);
+			if (node->childIndices[2]) q.push(node->childIndices[2]);
+			if (node->childIndices[3]) q.push(node->childIndices[3]);
+			if (node->childIndices[4]) q.push(node->childIndices[4]);
+			if (node->childIndices[5]) q.push(node->childIndices[5]);
+			if (node->childIndices[6]) q.push(node->childIndices[6]);
+			if (node->childIndices[7]) q.push(node->childIndices[7]);
+		}
+	}
+
 	
 
 }
@@ -143,7 +264,7 @@ __global__ void updateForceKernel(Particle *ParticlesContainer, OctreeNode *node
 	if (i < MAX_PARTICLES){
 		Particle *p = &ParticlesContainer[i];
 		devIterativeCalcParticleForce(p, nodeContainer, dt);
-		
+		//devRecCalcParticleForce(p, &nodeContainer[0], nodeContainer, dt);
 	}
 }
 
@@ -171,7 +292,7 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	dim3 dimBlock(1024);
 
 
-	updateForceKernel <<<1, 1 >>> (d_particle_container, d_node_container, MAX_PARTICLES, dt);
+	updateForceKernel <<<dimGrid, dimBlock >>> (d_particle_container, d_node_container, MAX_PARTICLES, dt);
 	cudaThreadSynchronize();
 
 

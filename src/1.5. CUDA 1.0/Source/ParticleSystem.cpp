@@ -318,7 +318,7 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 		}
 	}
 
-
+	// This might be more efficient parallelized
 	for (int j = 0; j < count; j++){
 		for (int i = 0; i < 8; i++){
 
@@ -341,27 +341,28 @@ void ParticleSystem::render(float dt){
 
 	buildTree();
 	tBuildTree = MyTimer::getTime(); // get time
-	std::cout << "Build tree: \t" << MyTimer::getDeltaTimeMS(start, tBuildTree) << std::endl;
 
 	calcTreeCOM(root);
 	tCalcCOM = MyTimer::getTime(); // get time
-	std::cout << "Compu. COM: \t" << MyTimer::getDeltaTimeMS(tBuildTree, tCalcCOM) << std::endl;
 
 	int count = 0;
 	
 	flattenTree(root, count);
 	tFlatten = MyTimer::getTime(); // get time
-	std::cout << "Flat. tree: \t" << MyTimer::getDeltaTimeMS(tCalcCOM, tFlatten) << std::endl;
 
 	CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
 	tCalcForces = MyTimer::getTime();
-	std::cout << "Cal. force: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCalcForces) << std::endl;
 
 	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 	tUpdPos = MyTimer::getTime();
-	std::cout << "Upd. posit: \t" << MyTimer::getDeltaTimeMS(tCalcForces, tUpdPos) << std::endl << std::endl;
 
-	
+	/*
+	std::cout << "Build tree: \t" << MyTimer::getDeltaTimeMS(start, tBuildTree) << std::endl;
+	std::cout << "Compu. COM: \t" << MyTimer::getDeltaTimeMS(tBuildTree, tCalcCOM) << std::endl;
+	std::cout << "Flat. tree: \t" << MyTimer::getDeltaTimeMS(tCalcCOM, tFlatten) << std::endl;
+	std::cout << "Cal. force: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCalcForces) << std::endl;
+	std::cout << "Upd. posit: \t" << MyTimer::getDeltaTimeMS(tCalcForces, tUpdPos) << std::endl << std::endl;
+	*/
 
 
 
