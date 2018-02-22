@@ -32,6 +32,17 @@ void CUDAUpdatePositions(Particle *ParticlesContainer, GLfloat *g_particule_posi
 void CUDACalcForces(Particle *ParticlesContainer, OctreeNode nodeContainer[], int count, int MAX_PARTICLES, float dt);
 
 /**
+* Calculates one simulation step without copying data back and forth more than necessary.
+* @param *p_container	array containing the particles
+* @param nodeContainer	array containing the nodes of the octree
+* @param *g_particule_position_size_data	OpenGL position buffer
+* @param MAX_PARTICLES	the number of particles in the ParticlesContainer
+* @param count	the number of nodes in the nodeContainer
+* @param dt	the stepsize, delta time
+*/
+void CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt);
+
+/**
 * Recursively traverses the flattened tree and calculates forces on the particle p
 * @param *p	the particle which force is calculated
 * @param *node	the node in the tree which the particle is compared to

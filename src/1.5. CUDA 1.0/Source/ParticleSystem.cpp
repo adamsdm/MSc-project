@@ -294,7 +294,7 @@ void ParticleSystem::buildTree(){
 }
 
 void ParticleSystem::flattenTree(OctreeNode *node, int &count){
-	
+
 	count = 0;
 	std::queue<OctreeNode*> q;
 
@@ -334,7 +334,7 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 
 void ParticleSystem::render(float dt){
 	
-	std::chrono::high_resolution_clock::time_point start, tBuildTree, tCalcCOM, tFlatten, tCalcForces, tUpdPos;
+	std::chrono::high_resolution_clock::time_point start, tBuildTree, tCalcCOM, tFlatten, tCudaStep;
 
 	// Start timer
 	start = MyTimer::getTime();
@@ -350,19 +350,15 @@ void ParticleSystem::render(float dt){
 	flattenTree(root, count);
 	tFlatten = MyTimer::getTime(); // get time
 
-	CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
-	tCalcForces = MyTimer::getTime();
-
-	CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
-	tUpdPos = MyTimer::getTime();
-
-	/*
+	CUDAStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
+	tCudaStep = MyTimer::getTime();
+	
+	
 	std::cout << "Build tree: \t" << MyTimer::getDeltaTimeMS(start, tBuildTree) << std::endl;
 	std::cout << "Compu. COM: \t" << MyTimer::getDeltaTimeMS(tBuildTree, tCalcCOM) << std::endl;
 	std::cout << "Flat. tree: \t" << MyTimer::getDeltaTimeMS(tCalcCOM, tFlatten) << std::endl;
-	std::cout << "Cal. force: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCalcForces) << std::endl;
-	std::cout << "Upd. posit: \t" << MyTimer::getDeltaTimeMS(tCalcForces, tUpdPos) << std::endl << std::endl;
-	*/
+	std::cout << "Cuda  step: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCudaStep) << std::endl << std::endl;
+	
 
 
 

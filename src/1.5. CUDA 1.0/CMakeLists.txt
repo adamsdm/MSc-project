@@ -1,6 +1,6 @@
 # Project definition
 cmake_minimum_required(VERSION 3.1)
-project(SeqVisOpenGL LANGUAGES CXX CUDA)
+project(CUDABarnesHut LANGUAGES CXX CUDA)
 
 # CUDA
 find_package(CUDA QUIET REQUIRED)
@@ -31,7 +31,7 @@ source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
 
 
-cuda_add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
+add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
                                 	${PROJECT_HEADERS}
                                 	${PROJECT_SHADERS})
 

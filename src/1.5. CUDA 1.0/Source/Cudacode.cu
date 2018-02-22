@@ -128,7 +128,7 @@ __device__ void devRecCalcParticleForce(Particle *p, OctreeNode *node, OctreeNod
 	
 }
 
-// https://gist.github.com/mycodeschool/7331785
+
 __device__ struct MyQueue {
 	static const int MAX_SIZE = 10000;
 	int f = -1, r = -1;
@@ -202,7 +202,7 @@ __device__ struct MyQueue {
 	}
 };
 
-__device__ void devIterativeCalcParticleForce(Particle *p, OctreeNode *nodeContainer, float dt) {
+__device__  __inline__ void devIterativeCalcParticleForce(Particle *p, OctreeNode *nodeContainer, float dt) {
 
 	MyQueue q;
 
@@ -251,9 +251,6 @@ __device__ void devIterativeCalcParticleForce(Particle *p, OctreeNode *nodeConta
 			if (node->childIndices[7]) q.push(node->childIndices[7]);
 		}
 	}
-
-	
-
 }
 
 __global__ void updateForceKernel(Particle *ParticlesContainer, OctreeNode *nodeContainer, int MAX_PARTICLES, float dt){
@@ -278,15 +275,12 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	OctreeNode *d_node_container;
 	Particle *d_particle_container;
 
-	std::chrono::high_resolution_clock::time_point t0, t1;
 
 	gpuErrchk(cudaMalloc((void**)&d_particle_container, MAX_PARTICLES * sizeof(Particle)));
 	gpuErrchk(cudaMemcpy(d_particle_container, ParticlesContainer, MAX_PARTICLES * sizeof(Particle), cudaMemcpyHostToDevice));
 
 	gpuErrchk(cudaMalloc((void**)&d_node_container, count * sizeof(OctreeNode)));
 	gpuErrchk(cudaMemcpy(d_node_container, nodeContainer, count*sizeof(OctreeNode), cudaMemcpyHostToDevice));
-
-
 
 	dim3 dimGrid(MAX_PARTICLES / 1024);
 	dim3 dimBlock(1024);
@@ -300,4 +294,40 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	
 	gpuErrchk(cudaFree(d_node_container));
 	gpuErrchk(cudaFree(d_particle_container));
+}
+
+void CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt) {
+
+
+	Particle *d_particle_container;
+	OctreeNode *d_node_container;
+	GLfloat *d_positions;
+
+	
+	// Container containing particles
+	gpuErrchk(cudaMalloc((void**)&d_particle_container, MAX_PARTICLES * sizeof(Particle)));
+	gpuErrchk(cudaMemcpy(d_particle_container, p_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyHostToDevice));
+
+	// Flattened tree container
+	gpuErrchk(cudaMalloc((void**)&d_node_container, count * sizeof(OctreeNode)));
+	gpuErrchk(cudaMemcpy(d_node_container, nodeContainer, count * sizeof(OctreeNode), cudaMemcpyHostToDevice));
+
+	// Vertex buffer
+	gpuErrchk(cudaMalloc((void**)&d_positions, MAX_PARTICLES * 3 * sizeof(GLfloat)));
+	gpuErrchk(cudaMemcpy(d_positions, g_particule_position_size_data, MAX_PARTICLES * 3 * sizeof(GLfloat), cudaMemcpyHostToDevice));
+
+	// Launch kernel
+	float simspeed = 0.01;
+	dim3 dimGrid(MAX_PARTICLES / 1024);
+	dim3 dimBlock(1024);
+
+	updateForceKernel <<<dimGrid, dimBlock >>> (d_particle_container, d_node_container, MAX_PARTICLES, dt);
+	cudaThreadSynchronize();
+	updatePositionKernel <<< dimGrid, dimBlock >> >(d_positions, d_particle_container, MAX_PARTICLES, dt, simspeed);
+	cudaThreadSynchronize();
+
+
+	// Retrieve result
+	gpuErrchk((cudaMemcpy(p_container, d_particle_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyDeviceToHost)));
+	gpuErrchk(cudaMemcpy(g_particule_position_size_data, d_positions, MAX_PARTICLES * 3 * sizeof(GLfloat), cudaMemcpyDeviceToHost));
 }
