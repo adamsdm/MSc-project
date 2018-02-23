@@ -341,9 +341,10 @@ void ParticleSystem::render(float dt){
 	flattenTree(root, count);
 
 	//OpenCLStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
-	CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
+	//CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
 	//CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 	
+	clSim.updFor(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
 	clSim.updPos(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
 

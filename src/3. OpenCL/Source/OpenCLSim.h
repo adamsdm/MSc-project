@@ -8,6 +8,7 @@
 #include <glad/glad.h>
 
 #include "Particle.h"
+#include "OctreeNode.h"
 
 class OpenCLSim {
 public:
@@ -17,6 +18,7 @@ public:
 	void step();
 
 	void updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt);
+	void updFor(Particle *ParticlesContainer, OctreeNode nodeContainer[], int count, int MAX_PARTICLES, float dt);
 
 private:
 	std::vector<cl::Platform> platforms;
@@ -25,6 +27,7 @@ private:
 	cl::Context *context;
 
 	cl::Kernel updPosKernel;
+	cl::Kernel updForceKernel;
 	cl::Kernel vectorAddKernel;
 
 };

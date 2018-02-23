@@ -85,6 +85,7 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 }
 
 
+
 __device__ void devRecCalcParticleForce(Particle *p, OctreeNode *node, OctreeNode *nodeContainer, float dt){
 
 	if (!node) return;
