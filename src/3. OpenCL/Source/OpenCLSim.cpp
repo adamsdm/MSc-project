@@ -108,14 +108,35 @@ cl::Kernel OpenCLSim::createKernel(char* filepath, char* name) {
 	cl::Program::Sources sources(1, std::make_pair(src.c_str(), src.length() + 1));
 	cl::Program program(*context, sources);
 
-	cl_int err = program.build(devices, "-cl-std=CL1.2");
-	checkError(err);
+	cl_int err;
+	try {
+		program.build(devices, "-cl-std=CL1.2");
+	}
+	catch (cl::Error &e) {
+		if (e.err() == CL_BUILD_PROGRAM_FAILURE)
+		{
+			for (cl::Device dev : devices)
+			{
+				// Check the build status
+				cl_build_status status = program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(dev);
+				if (status != CL_BUILD_ERROR)
+					continue;
+
+				// Get the build log
+				std::string name = dev.getInfo<CL_DEVICE_NAME>();
+				std::string buildlog = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(dev);
+				std::cout << "Build log for " << name << ":" << std::endl
+					<< buildlog << std::endl;
+			}
+		}
+	}
 	
+
 	cl::Kernel kernel(program, name, &err);
 	checkError(err);
 
-
 	return kernel;
+	
 }
 
 void OpenCLSim::step() {
@@ -215,22 +236,26 @@ void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_positi
 	
 }
 
-void OpenCLSim::updFor(Particle *ParticlesContainer, OctreeNode nodeContainer[], int count, int MAX_PARTICLES, float dt) {
+
+void OpenCLSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int count, int MAX_PARTICLES, float dt) {
 
 	cl::Buffer parBuff(*context, CL_MEM_READ_WRITE, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
+	cl::Buffer nodBuff(*context, CL_MEM_READ_WRITE, count * sizeof(sOctreeNode), nodeContainer);
 
 	updForceKernel.setArg(0, parBuff);			// Particles
-	updForceKernel.setArg(1, MAX_PARTICLES);	// MAX_PARTICLES
+	updForceKernel.setArg(1, nodBuff);			// Particles
+	updForceKernel.setArg(2, MAX_PARTICLES);	// MAX_PARTICLES
 
 
 	cl::CommandQueue queue(*context, devices[0]);
 	queue.enqueueWriteBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
+	queue.enqueueWriteBuffer(nodBuff, CL_TRUE, 0, count * sizeof(sOctreeNode), nodeContainer);
 
 	// Launch kernel
 	queue.enqueueNDRangeKernel(updForceKernel, cl::NullRange, cl::NDRange(MAX_PARTICLES), cl::NDRange(1024));
 	queue.finish();
 
 	queue.enqueueReadBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
-
+	
 
 }

@@ -13,7 +13,7 @@ ParticleSystem::ParticleSystem(const unsigned int const _MAX_PARTICLES) {
 	g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
 
 	nodeContainer = new OctreeNode[4 * MAX_PARTICLES];
-
+	sNodeContainer = new sOctreeNode[4 * MAX_PARTICLES];
 
 	// Create share
 	ParticlesContainer = new Particle[MAX_PARTICLES];
@@ -292,7 +292,7 @@ void ParticleSystem::buildTree(){
 	t3 = MyTimer::getTime();
 }
 
-void ParticleSystem::flattenTree(OctreeNode *node, int &count){
+void ParticleSystem::flattenTree(OctreeNode *node, int &count) {
 
 	count = 0;
 	std::queue<OctreeNode*> q;
@@ -304,31 +304,65 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 
 	while (!q.empty()) {
 		OctreeNode * temp_node = q.front();
-		
+
 		temp_node->index = count;
 		nodeContainer[count] = *temp_node;
 		count++;
 		q.pop();
-		
-		for (int i = 0; i < 8; i++){
+
+		for (int i = 0; i < 8; i++) {
 			if (temp_node->getChild(i)) {
 				q.push(temp_node->getChild(i));
 			}
 		}
 	}
 
-	// This might be more efficient parallelized
-	for (int j = 0; j < count; j++){
-		for (int i = 0; i < 8; i++){
 
-			if (nodeContainer[j].children[i]){
-				nodeContainer[j].childIndices[i] = nodeContainer[j].children[i]->index;
+	
+
+	// This might be more efficient parallelized
+	for (int j = 0; j < count; j++) {
+		// Create a struct based octreenode from node
+
+		sOctreeNode sNode = sNodeContainer[j];
+
+		// Copy data into structed octreenode
+		sNode.min_x = nodeContainer[j].min_x;
+		sNode.min_y = nodeContainer[j].min_y;
+		sNode.min_z = nodeContainer[j].min_z;
+
+		sNode.max_x = nodeContainer[j].max_x;
+		sNode.max_y = nodeContainer[j].max_y;
+		sNode.max_z = nodeContainer[j].max_z;
+
+		sNode.mid_x = nodeContainer[j].mid_x;
+		sNode.mid_y = nodeContainer[j].mid_y;
+		sNode.mid_z = nodeContainer[j].mid_z;
+
+		sNode.m = nodeContainer[j].m;
+
+		sNode.com_x = nodeContainer[j].com_x;
+		sNode.com_y = nodeContainer[j].com_y;
+		sNode.com_z = nodeContainer[j].com_z;
+		
+		
+
+		for (int i = 0; i < 8; i++) {
+
+			if (nodeContainer[j].children[i]) {
+				int index = nodeContainer[j].children[i]->index;
+				nodeContainer[j].childIndices[i] = index;
+				sNode.childIndices[i] = index;
 			}
 			else {
 				nodeContainer[j].childIndices[i] = NULL;
+				sNode.childIndices[i] = NULL;	
 			}
 		}
+
+		sNodeContainer[j] = sNode;
 	}
+
 }
 
 void ParticleSystem::render(float dt){
@@ -344,10 +378,10 @@ void ParticleSystem::render(float dt){
 	//CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
 	//CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 	
-	clSim.updFor(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
+	clSim.updFor(ParticlesContainer, sNodeContainer, count, MAX_PARTICLES, dt);
 	clSim.updPos(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
-
+	
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.

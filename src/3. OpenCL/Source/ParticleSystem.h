@@ -12,11 +12,13 @@
 #include "Camera.h"
 #include "Shader.h"
 #include "OctreeNode.h"
+#include "sOctreeNode.h"
 #include "Particle.h"
 #include "Cell.h"
 #include "Cudacode.cuh"
 #include "MyTimer.h"
 #include "OpenCLSim.h"
+
 
 
 #define M_PI	3.14159265359
@@ -47,6 +49,7 @@ private:
 	// Data
 	Particle *ParticlesContainer;
 	OctreeNode* nodeContainer;
+	sOctreeNode *sNodeContainer;
 
 	Shader *particleShader;
 	OctreeNode *root;
