@@ -24,6 +24,7 @@ private:
 	cl::Kernel createKernel(char* filepath, char* name);
 	cl::Context *context;
 
+	cl::Kernel updPosKernel;
 	cl::Kernel vectorAddKernel;
 
 };

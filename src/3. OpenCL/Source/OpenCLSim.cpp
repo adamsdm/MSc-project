@@ -92,6 +92,7 @@ OpenCLSim::OpenCLSim() {
 	context = new cl::Context(devices);
 
 	vectorAddKernel = createKernel("../CLKernels/VectorAddition.cl", "vectorAddition");
+	updPosKernel = createKernel("../CLKernels/UpdPos.cl", "updPos");
 }
 
 OpenCLSim::~OpenCLSim() {
@@ -109,7 +110,7 @@ cl::Kernel OpenCLSim::createKernel(char* filepath, char* name) {
 	cl_int err = program.build(devices, "-cl-std=CL1.2");
 	checkError(err);
 	
-	cl::Kernel kernel(program, "vectorAddition", &err);
+	cl::Kernel kernel(program, name, &err);
 	checkError(err);
 
 
@@ -183,4 +184,24 @@ void OpenCLSim::step() {
 
 void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
 
+	
+	cl::Buffer posBuff(*context, CL_MEM_READ_WRITE, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+	
+
+	// Pass arguments
+	updPosKernel.setArg(0, posBuff);
+	updPosKernel.setArg(1, MAX_PARTICLES);
+
+	// Create command queue
+	cl::CommandQueue queue(*context, devices[0]);
+
+	// Copy data to buffers
+	queue.enqueueWriteBuffer(posBuff, CL_TRUE, 0, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+
+	// Launch kernel
+	queue.enqueueNDRangeKernel(updPosKernel, cl::NullRange, cl::NDRange(MAX_PARTICLES), cl::NDRange(1024));
+
+	// Copy back data
+	queue.enqueueReadBuffer(posBuff, CL_TRUE, 0, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+	
 }
