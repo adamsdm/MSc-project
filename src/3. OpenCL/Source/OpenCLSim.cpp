@@ -185,17 +185,23 @@ void OpenCLSim::step() {
 void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
 
 	
+	cl::Buffer parBuff(*context, CL_MEM_READ_WRITE, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	cl::Buffer posBuff(*context, CL_MEM_READ_WRITE, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
 	
+	float simspeed = 0.01;
 
 	// Pass arguments
-	updPosKernel.setArg(0, posBuff);
-	updPosKernel.setArg(1, MAX_PARTICLES);
+	updPosKernel.setArg(0, posBuff);		// Positions
+	updPosKernel.setArg(1, parBuff);		// Particles
+	updPosKernel.setArg(2, MAX_PARTICLES);	// Max particles
+	updPosKernel.setArg(3, dt);				// dt
+	updPosKernel.setArg(4, simspeed);		// simspeed
 
 	// Create command queue
 	cl::CommandQueue queue(*context, devices[0]);
 
 	// Copy data to buffers
+	queue.enqueueWriteBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	queue.enqueueWriteBuffer(posBuff, CL_TRUE, 0, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
 
 	// Launch kernel
@@ -203,5 +209,6 @@ void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_positi
 
 	// Copy back data
 	queue.enqueueReadBuffer(posBuff, CL_TRUE, 0, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+	queue.enqueueReadBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	
 }
