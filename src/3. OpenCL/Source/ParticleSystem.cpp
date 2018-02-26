@@ -325,8 +325,11 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count) {
 		// Create a struct based octreenode from node
 
 		sOctreeNode sNode = sNodeContainer[j];
+	
 
 		// Copy data into structed octreenode
+		sNode.index = nodeContainer[j].index;
+
 		sNode.min_x = nodeContainer[j].min_x;
 		sNode.min_y = nodeContainer[j].min_y;
 		sNode.min_z = nodeContainer[j].min_z;

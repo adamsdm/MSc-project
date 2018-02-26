@@ -243,8 +243,9 @@ void OpenCLSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer,
 	cl::Buffer nodBuff(*context, CL_MEM_READ_WRITE, count * sizeof(sOctreeNode), nodeContainer);
 
 	updForceKernel.setArg(0, parBuff);			// Particles
-	updForceKernel.setArg(1, nodBuff);			// Particles
+	updForceKernel.setArg(1, nodBuff);			// Nodes
 	updForceKernel.setArg(2, MAX_PARTICLES);	// MAX_PARTICLES
+	updForceKernel.setArg(3, count);	// MAX_PARTICLES
 
 
 	cl::CommandQueue queue(*context, devices[0]);
