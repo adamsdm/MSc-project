@@ -171,70 +171,6 @@ cl::Kernel OpenCLSim::createKernel(char* filepath, char* name) {
 	
 }
 
-void OpenCLSim::step() {
-	
-
-	const int N_elements = 102400;
-
-
-	// Initialize data
-	int* vector1 = new int[N_elements];
-	int* vector2 = new int[N_elements];
-	int* vector3 = new int[N_elements];
-
-	for (size_t i = 0; i < N_elements; i++) {
-		vector1[i] = i;
-		vector2[i] = 2 * i;
-	}
-
-	// Allocate memory
-	cl::Buffer vec1Buff(*context, CL_MEM_READ_ONLY, sizeof(int) * N_elements, vector1);
-	cl::Buffer vec2Buff(*context, CL_MEM_READ_ONLY, sizeof(int) * N_elements, vector2);
-	cl::Buffer vec3Buff(*context, CL_MEM_WRITE_ONLY, sizeof(int) * N_elements, vector3);
-	
-	// Pass arguments
-	vectorAddKernel.setArg(0, vec1Buff);
-	vectorAddKernel.setArg(1, vec2Buff);
-	vectorAddKernel.setArg(2, vec3Buff);
-
-	// Create command queue
-	cl::CommandQueue queue(*context, default_device);
-
-	// Copy data to buffers
-	queue.enqueueWriteBuffer(vec1Buff, CL_TRUE, 0, sizeof(int) * N_elements, vector1);
-	queue.enqueueWriteBuffer(vec2Buff, CL_TRUE, 0, sizeof(int) * N_elements, vector2);
-
-	// Launch kernel
-	queue.enqueueNDRangeKernel(vectorAddKernel, cl::NullRange, cl::NDRange(N_elements), cl::NDRange(1024));
-
-	// Copy back data
-	queue.enqueueReadBuffer(vec3Buff, CL_TRUE, 0, sizeof(int) * N_elements, vector3);
-
-
-	// Print result
-	std::cout << "N_elements = " << N_elements << std::endl << std::endl;
-	for (size_t i = 0; i < 10; i++) {
-		std::cout << vector1[i] << '+' << vector2[i] << '=' << vector3[i] << std::endl;
-	}
-	std::cout << "..." << std::endl;
-
-	// Verify result
-	for (size_t i = 0; i < N_elements; i++) {
-		if (vector1[i] + vector2[i] != vector3[i]) {
-			std::cout << "Error at index " << i << ": " << vector1[i] << '+' << vector2[i] << "!=" << vector3[i] << std::endl;
-			break;
-		}
-	}
-
-	std::cout << "Sucess!" << std::endl;
-
-
-	// Clean up
-	delete[] vector1;
-	delete[] vector2;
-	delete[] vector3;
-	
-}
 
 void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
 
@@ -271,15 +207,17 @@ void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_positi
 
 void OpenCLSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int count, int MAX_PARTICLES, float dt) {
 
+	// Create buffers
 	cl::Buffer parBuff(*context, CL_MEM_READ_WRITE, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	cl::Buffer nodBuff(*context, CL_MEM_READ_WRITE, count * sizeof(sOctreeNode), nodeContainer);
 
+	// Set buffers as arguments
 	updForceKernel.setArg(0, parBuff);			// Particles
 	updForceKernel.setArg(1, nodBuff);			// Nodes
 	updForceKernel.setArg(2, MAX_PARTICLES);	// MAX_PARTICLES
 	updForceKernel.setArg(3, count);	// MAX_PARTICLES
 
-
+	// Create command queue and copy data
 	cl::CommandQueue queue(*context, default_device);
 	queue.enqueueWriteBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	queue.enqueueWriteBuffer(nodBuff, CL_TRUE, 0, count * sizeof(sOctreeNode), nodeContainer);
@@ -288,7 +226,51 @@ void OpenCLSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer,
 	queue.enqueueNDRangeKernel(updForceKernel, cl::NullRange, cl::NDRange(MAX_PARTICLES), cl::NDRange(1024));
 	queue.finish();
 
+	// Read back result
 	queue.enqueueReadBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	
+}
+
+void OpenCLSim::step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt){
+	
+	// Create buffers
+	cl::Buffer parBuff(*context, CL_MEM_READ_WRITE, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
+	cl::Buffer nodBuff(*context, CL_MEM_READ_WRITE, count * sizeof(sOctreeNode), nodeContainer);
+	cl::Buffer posBuff(*context, CL_MEM_READ_WRITE, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+
+	float simspeed = 0.01;
+
+	// Set updateForce kernel arguments
+	updForceKernel.setArg(0, parBuff);			// Particles
+	updForceKernel.setArg(1, nodBuff);			// Nodes
+	updForceKernel.setArg(2, MAX_PARTICLES);	// MAX_PARTICLES
+	updForceKernel.setArg(3, count);			// MAX_PARTICLES
+
+	
+
+	// Set update position kernel arguments
+	updPosKernel.setArg(0, posBuff);		// Positions
+	updPosKernel.setArg(1, parBuff);		// Particles
+	updPosKernel.setArg(2, MAX_PARTICLES);	// Max particles
+	updPosKernel.setArg(3, dt);				// dt
+	updPosKernel.setArg(4, simspeed);		// simspeed
+
+
+	// Create command queue and copy data
+	cl::CommandQueue queue(*context, default_device);
+	queue.enqueueWriteBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
+	queue.enqueueWriteBuffer(nodBuff, CL_TRUE, 0, count * sizeof(sOctreeNode), nodeContainer);
+	queue.enqueueWriteBuffer(posBuff, CL_TRUE, 0, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+
+
+	// Launch kernels
+	queue.enqueueNDRangeKernel(updForceKernel, cl::NullRange, cl::NDRange(MAX_PARTICLES), cl::NDRange(1024));
+	queue.finish();
+	queue.enqueueNDRangeKernel(updPosKernel, cl::NullRange, cl::NDRange(MAX_PARTICLES), cl::NDRange(1024));
+	queue.finish();
+
+	// Copy back data
+	queue.enqueueReadBuffer(posBuff, CL_TRUE, 0, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+	queue.enqueueReadBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 
 }

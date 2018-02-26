@@ -16,11 +16,11 @@ public:
 	OpenCLSim();
 	~OpenCLSim();
 
-	void step();
 
 	void updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt);
 	void updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int count, int MAX_PARTICLES, float dt);
 
+	void step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt);
 private:
 	std::vector<cl::Platform> platforms;
 	std::vector<cl::Device> devices;
