@@ -24,6 +24,10 @@ public:
 private:
 	std::vector<cl::Platform> platforms;
 	std::vector<cl::Device> devices;
+
+	cl::Device default_device;
+	cl::Platform default_platform;
+
 	cl::Kernel createKernel(char* filepath, char* name);
 	cl::Context *context;
 

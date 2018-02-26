@@ -87,13 +87,44 @@ void checkError(cl_int err) {
 
 
 OpenCLSim::OpenCLSim() {
-	cl::Platform::get(&platforms);
-	platforms[0].getDevices(CL_DEVICE_TYPE_ALL, &devices);
-	context = new cl::Context(devices);
 
+	// Get list of platforms
+	cl::Platform::get(&platforms);
+	if (!platforms.size()){
+		std::cout << "No OpenCL platform found. Check installation\n";
+		exit(1);
+	}
+	// Set default as the first platform found
+	default_platform = platforms[0]; 
+	// Print info
+	std::cout << "----- PLATFORM -----" << std::endl
+		<< default_platform.getInfo<CL_PLATFORM_VENDOR>() << std::endl
+		<< default_platform.getInfo<CL_PLATFORM_VERSION>() << std::endl << std::endl;
+
+	// Get a list of available devices on the system
+	default_platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
+	if (!devices.size()){
+		std::cout << " No devices found" << std::endl;
+		exit(1);
+	}
+	// Set default device
+	default_device = devices[0];
+
+	// print device info
+	std::cout << "------ DEVICE ------" << std::endl
+		
+		<< default_device.getInfo<CL_DEVICE_VENDOR>() << std::endl
+		<< default_device.getInfo<CL_DEVICE_NAME>() << std::endl
+		<< "--------------------" << std::endl << std::endl;
+
+	// Create context from default device
+	context = new cl::Context({ default_device });
+
+	// Create kernels
 	vectorAddKernel = createKernel("../CLKernels/VectorAddition.cl", "vectorAddition");
 	updPosKernel = createKernel("../CLKernels/UpdPos.cl", "updPos");
 	updForceKernel = createKernel("../CLKernels/UpdForce.cl", "updForce");
+
 }
 
 OpenCLSim::~OpenCLSim() {
@@ -129,6 +160,7 @@ cl::Kernel OpenCLSim::createKernel(char* filepath, char* name) {
 					<< buildlog << std::endl;
 			}
 		}
+		exit(1);
 	}
 	
 
@@ -166,7 +198,7 @@ void OpenCLSim::step() {
 	vectorAddKernel.setArg(2, vec3Buff);
 
 	// Create command queue
-	cl::CommandQueue queue(*context, devices[0]);
+	cl::CommandQueue queue(*context, default_device);
 
 	// Copy data to buffers
 	queue.enqueueWriteBuffer(vec1Buff, CL_TRUE, 0, sizeof(int) * N_elements, vector1);
@@ -220,7 +252,7 @@ void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_positi
 	updPosKernel.setArg(4, simspeed);		// simspeed
 
 	// Create command queue
-	cl::CommandQueue queue(*context, devices[0]);
+	cl::CommandQueue queue(*context, default_device);
 
 	// Copy data to buffers
 	queue.enqueueWriteBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
@@ -248,7 +280,7 @@ void OpenCLSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer,
 	updForceKernel.setArg(3, count);	// MAX_PARTICLES
 
 
-	cl::CommandQueue queue(*context, devices[0]);
+	cl::CommandQueue queue(*context, default_device);
 	queue.enqueueWriteBuffer(parBuff, CL_TRUE, 0, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	queue.enqueueWriteBuffer(nodBuff, CL_TRUE, 0, count * sizeof(sOctreeNode), nodeContainer);
 
