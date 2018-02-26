@@ -234,9 +234,12 @@ void OpenCLSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer,
 void OpenCLSim::step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt){
 	
 	// Create buffers
+	
+	
 	cl::Buffer parBuff(*context, CL_MEM_READ_WRITE, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
-	cl::Buffer nodBuff(*context, CL_MEM_READ_WRITE, count * sizeof(sOctreeNode), nodeContainer);
+	cl::Buffer nodBuff(*context, CL_MEM_READ_ONLY, count * sizeof(sOctreeNode), nodeContainer);
 	cl::Buffer posBuff(*context, CL_MEM_READ_WRITE, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
+
 
 	float simspeed = 0.01;
 

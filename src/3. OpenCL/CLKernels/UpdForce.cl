@@ -57,7 +57,6 @@ kernel void updForce(__global Particle* particles, __global sOctreeNode* nodes, 
 		else { r = (r + 1) % MAX_SIZE;}
 		queue[r] = nodes[0].index;
 
-
 		while (!(f == -1 && r == -1)) {
 			sOctreeNode node = nodes[queue[f]];
 			// POP
@@ -73,7 +72,7 @@ kernel void updForce(__global Particle* particles, __global sOctreeNode* nodes, 
 
 			float dist = sqrt(dx*dx + dy*dy + dz*dz);
 
-			if (dist == 0) return;
+			if (dist == 0) continue;
 
 			float width = ((node.max_x - node.min_x) +
 				(node.max_y - node.min_y) +
@@ -104,9 +103,9 @@ kernel void updForce(__global Particle* particles, __global sOctreeNode* nodes, 
 					}
 				}
 			}
-
-			particles[idx] = p;
-
 		}
+
+		particles[idx] = p;
+
 	}
 }

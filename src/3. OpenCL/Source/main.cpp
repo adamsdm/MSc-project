@@ -125,6 +125,10 @@ int main() {
 	glm::mat4 view;
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W / H, 0.1f, 4000.0f);
 
+
+	std::cout << "Starting simulation with " << NO_PARTICLES << " bodies..." << std::endl << std::endl;
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// Update time

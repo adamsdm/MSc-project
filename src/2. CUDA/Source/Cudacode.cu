@@ -71,7 +71,7 @@ void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_si
 	dim3 dimGrid(MAX_PARTICLES / 1024);
 	dim3 dimBlock(1024);
 
-	updatePositionKernel << < dimGrid, dimBlock >> >(d_positions, d_ParticlesContainer, MAX_PARTICLES, dt, simspeed);
+	updatePositionKernel <<< dimGrid, dimBlock >>>(d_positions, d_ParticlesContainer, MAX_PARTICLES, dt, simspeed);
 	cudaThreadSynchronize();
 
 	// retrieve the results
