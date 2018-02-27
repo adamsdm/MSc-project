@@ -15,7 +15,6 @@
 #include "sOctreeNode.h"
 #include "Particle.h"
 #include "Cell.h"
-#include "Cudacode.cuh"
 #include "MyTimer.h"
 #include "OpenCLSim.h"
 

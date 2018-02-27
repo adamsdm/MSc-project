@@ -1,11 +1,21 @@
 # Project definition
 cmake_minimum_required(VERSION 3.1)
-project(OpenCLBarnesHut LANGUAGES CXX CUDA)
+project(OpenCLBarnesHut)
 
+
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
+
+
+# OpenCL
 find_package( OpenCL REQUIRED )
+MESSAGE( STATUS "CL FOUND?: " ${OPENCL_FOUND} )
+MESSAGE( STATUS "INC. DIRS: " ${OPENCL_INCLUDE_DIRS} )
+MESSAGE( STATUS "INC. LIBS: " ${OPENCL_LIBRARIES} )
+MESSAGE( STATUS "OCL Versi: " ${OPENCL_VERSION_STRING} )
+MESSAGE( STATUS "HAS CXX??: " ${OPENCL_HAS_CXX} )
 
-# CUDA
-find_package(CUDA QUIET REQUIRED)
+
 
 set(SRC_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/Source")
 set(EXT_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/External")
@@ -25,8 +35,8 @@ endif()
 
 
 file(GLOB PROJECT_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl)
-file(GLOB PROJECT_SOURCES   ${SRC_DIR}/*.cpp 	${SRC_DIR}/*.cu)
-file(GLOB PROJECT_HEADERS   ${SRC_DIR}/*.h 	${SRC_DIR}/*.cuh)
+file(GLOB PROJECT_SOURCES   ${SRC_DIR}/*.cpp)
+file(GLOB PROJECT_HEADERS   ${SRC_DIR}/*.h)
 file(GLOB PROJECT_KERNELS   ${KRL_DIR}/*.cl)
 
 
@@ -39,7 +49,7 @@ source_group("Kernels" FILES ${PROJECT_KERNELS})
 add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
                                 	${PROJECT_HEADERS}
                                 	${PROJECT_SHADERS}
-                                    ${PROJECT_KERNELS})
+                                    	${PROJECT_KERNELS})
 
 
 
@@ -48,13 +58,13 @@ include_directories(${PROJECT_NAME} ${SRC_DIR}
                                     ${GLM_DIR}
                                     ${GLFW_DIR}/include
                                     ${GLAD_DIR}/include
-				                    ${CUDA_TOOLKIT_ROOT_DIR}/include
                                     ${OPENCL_INCLUDE_DIR})
 
 
+# OpenCL
 
-target_link_libraries(${PROJECT_NAME} "OpenCL" "${OPENCL_LIBRARIES}")
 
+target_link_libraries(${PROJECT_NAME} ${OPENCL_LIBRARIES})
 
 # GLFW
 option(GLFW_BUILD_DOCS OFF)
