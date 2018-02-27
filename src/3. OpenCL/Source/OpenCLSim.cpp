@@ -84,12 +84,12 @@ void checkError(cl_int err) {
 }
 
 
-
-
 OpenCLSim::OpenCLSim() {
 
 	// Get list of platforms
 	cl::Platform::get(&platforms);
+
+
 	if (!platforms.size()){
 		std::cout << "No OpenCL platform found. Check installation\n";
 		exit(1);
@@ -100,6 +100,7 @@ OpenCLSim::OpenCLSim() {
 	std::cout << "----- PLATFORM -----" << std::endl
 		<< default_platform.getInfo<CL_PLATFORM_VENDOR>() << std::endl
 		<< default_platform.getInfo<CL_PLATFORM_VERSION>() << std::endl << std::endl;
+
 
 	// Get a list of available devices on the system
 	default_platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
@@ -117,10 +118,12 @@ OpenCLSim::OpenCLSim() {
 		<< default_device.getInfo<CL_DEVICE_NAME>() << std::endl
 		<< "--------------------" << std::endl << std::endl;
 
+
 	// Create context from default device
 	context = new cl::Context({ default_device });
 
-	// Create kernels
+
+	// Read and compile kernels
 	vectorAddKernel = createKernel("../CLKernels/VectorAddition.cl", "vectorAddition");
 	updPosKernel = createKernel("../CLKernels/UpdPos.cl", "updPos");
 	updForceKernel = createKernel("../CLKernels/UpdForce.cl", "updForce");
@@ -133,8 +136,8 @@ OpenCLSim::~OpenCLSim() {
 
 
 cl::Kernel OpenCLSim::createKernel(char* filepath, char* name) {
-	std::ifstream helloWorldFile(filepath);
-	std::string src(std::istreambuf_iterator<char>(helloWorldFile), (std::istreambuf_iterator<char>()));
+	std::ifstream file(filepath);
+	std::string src(std::istreambuf_iterator<char>(file), (std::istreambuf_iterator<char>()));
 
 	cl::Program::Sources sources(1, std::make_pair(src.c_str(), src.length() + 1));
 	cl::Program program(*context, sources);
@@ -160,12 +163,16 @@ cl::Kernel OpenCLSim::createKernel(char* filepath, char* name) {
 					<< buildlog << std::endl;
 			}
 		}
+		file.close();
 		exit(1);
 	}
 	
 
+	// Create kernel from program
 	cl::Kernel kernel(program, name, &err);
 	checkError(err);
+
+	file.close();
 
 	return kernel;
 	
@@ -174,8 +181,9 @@ cl::Kernel OpenCLSim::createKernel(char* filepath, char* name) {
 
 void OpenCLSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
 
-	
+	// Buffer containing particles
 	cl::Buffer parBuff(*context, CL_MEM_READ_WRITE, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
+	// Buffer containing positions
 	cl::Buffer posBuff(*context, CL_MEM_READ_WRITE, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
 	
 	float simspeed = 0.01;
@@ -234,8 +242,6 @@ void OpenCLSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer,
 void OpenCLSim::step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt){
 	
 	// Create buffers
-	
-	
 	cl::Buffer parBuff(*context, CL_MEM_READ_WRITE, MAX_PARTICLES * sizeof(Particle), ParticlesContainer);
 	cl::Buffer nodBuff(*context, CL_MEM_READ_ONLY, count * sizeof(sOctreeNode), nodeContainer);
 	cl::Buffer posBuff(*context, CL_MEM_READ_WRITE, 3 * MAX_PARTICLES * sizeof(GLfloat), g_particule_position_size_data);
