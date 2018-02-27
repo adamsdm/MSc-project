@@ -13,6 +13,15 @@
 #endif
 
 
+
+CudaSim::CudaSim(){
+	;
+}
+
+CudaSim::~CudaSim(){
+	;
+}
+
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
 {
@@ -46,7 +55,7 @@ __global__ void updatePositionKernel(GLfloat *g_particule_position_size_data, Pa
 
 }
 
-void CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
+void CudaSim::CUDAUpdatePositions(Particle *p_container, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
 
 	
 	int size = MAX_PARTICLES * sizeof(Particle);
@@ -296,7 +305,7 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	gpuErrchk(cudaFree(d_particle_container));
 }
 
-void CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt) {
+void CudaSim::CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt) {
 
 
 	Particle *d_particle_container;

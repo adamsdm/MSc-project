@@ -25,7 +25,7 @@ namespace App {
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-		GLFWwindow* window = glfwCreateWindow(W, H, "OpenGL-Boilerplate", NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow(W, H, "CUDA N-Body Barnes-Hut Simulation", NULL, NULL);
 
 
 		if (window == NULL)

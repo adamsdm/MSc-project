@@ -82,6 +82,8 @@ public:
 	ParticleSystem(const unsigned int _MAX_PARTICLES = 1000);
 	~ParticleSystem();
 	
+	CudaSim cuSim;
+
 	/**
 	* Renders the particles instanced
 	* @param dt delta time.

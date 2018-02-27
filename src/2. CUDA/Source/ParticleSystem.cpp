@@ -43,7 +43,6 @@ ParticleSystem::ParticleSystem(const unsigned int const _MAX_PARTICLES) {
 	glGenVertexArrays(1, &comVAO);
 	glGenBuffers(1, &comVBO);
 
-
 }
 
 void ParticleSystem::renderCOM(OctreeNode *node, Shader comShader){
@@ -350,15 +349,16 @@ void ParticleSystem::render(float dt){
 	flattenTree(root, count);
 	tFlatten = MyTimer::getTime(); // get time
 
-	CUDAStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
+	
+	cuSim.CUDAStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
 	tCudaStep = MyTimer::getTime();
 	
 	
 	std::cout << "Build tree: \t" << MyTimer::getDeltaTimeMS(start, tBuildTree) << std::endl;
 	std::cout << "Compu. COM: \t" << MyTimer::getDeltaTimeMS(tBuildTree, tCalcCOM) << std::endl;
 	std::cout << "Flat. tree: \t" << MyTimer::getDeltaTimeMS(tCalcCOM, tFlatten) << std::endl;
-	std::cout << "Cuda  step: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCudaStep) << std::endl << std::endl;
-	
+	std::cout << "Cuda  step: \t" << MyTimer::getDeltaTimeMS(tFlatten, tCudaStep) << std::endl;
+	std::cout << "Total step: \t" << MyTimer::getDeltaTimeMS(start, tCudaStep) << std::endl << std::endl;
 
 
 
