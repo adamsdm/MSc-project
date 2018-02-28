@@ -15,7 +15,21 @@
 
 
 CudaSim::CudaSim(){
-	;
+
+	const int kb = 1024;
+	const int mb = kb * kb;
+
+	cudaDeviceProp props;
+	cudaGetDeviceProperties(&props, 0);
+	
+
+	std::cout << "---------- DEVICE INFO ----------" << std::endl;
+	std::cout << "CUDA version:   v" << CUDART_VERSION << std::endl;
+	std::cout << "Global memory:   " << props.totalGlobalMem / mb << "mb" << std::endl;
+	std::cout << "Max block dimensions: [ " << props.maxThreadsDim[0] << ", " << props.maxThreadsDim[1] << ", " << props.maxThreadsDim[2] << " ]" << std::endl;
+	std::cout << "Max grid dimensions:  [ " << props.maxGridSize[0] << ", " << props.maxGridSize[1] << ", " << props.maxGridSize[2] << " ]" << std::endl;
+	std::cout << "---------------------------------" << std::endl;
+
 }
 
 CudaSim::~CudaSim(){
