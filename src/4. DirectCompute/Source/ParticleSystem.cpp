@@ -384,7 +384,7 @@ void ParticleSystem::render(float dt){
 	//clSim.updFor(ParticlesContainer, sNodeContainer, count, MAX_PARTICLES, dt);
 	//clSim.updPos(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
-	dcSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
+	//dcSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
 	
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
