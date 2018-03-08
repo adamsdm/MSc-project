@@ -12,14 +12,119 @@ struct BufType
 
 
 DCSim::DCSim(){
+
+	// ================================= //
+	// EX 1. Raw Buffers vector addition //
+	// ================================= //
+	/*
 	// Create a device that the kernel will run on
 	std::cout << "Creating compute device... ";
-	if (FAILED(CreateComputeDevice(&device, &context, false))) exit(1); 
+	if (FAILED(CreateComputeDevice(&device, &context, false))) exit(1);
 	std::cout << "Done!" << std::endl;
 
+
 	// Compile CS from source
-	std::cout << "Creating Compute Shader...";
-	if (FAILED(CreateComputeShader(L"../Source/VectorAddCS.hlsl", "CSMain", device, &computeShader))) exit(1);
+	std::cout << "Creating Compute Shaders...";
+	if (FAILED(CreateComputeShader(L"../Shaders/UpdPos.hlsl", "CSMain", device, &updPosCS))) exit(1);
+	std::cout << " Done!" << std::endl;
+
+	// Create input data and buffers
+	std::cout << "Creating buffers and filling them with initial data...";
+
+	int g_vBuf0[NUM_ELEMENTS];
+	int g_vBuf1[NUM_ELEMENTS];
+	int g_vBufRes[NUM_ELEMENTS];
+
+	for (int i = 0; i < NUM_ELEMENTS; ++i)
+	{
+		g_vBuf0[i] = i;
+		g_vBuf1[i] = 3*i;
+	}
+
+	std::cout << " Done!" << std::endl;
+
+	ID3D11Buffer* g_pBuf0 = nullptr;
+	ID3D11Buffer* g_pBuf1 = nullptr;
+	ID3D11Buffer* g_pBufResult = nullptr;
+
+
+	// Create raws buffer from input data
+	CreateRawBuffer(device, sizeof(int), NUM_ELEMENTS, &g_vBuf0[0], &g_pBuf0);
+	CreateRawBuffer(device, sizeof(int), NUM_ELEMENTS, &g_vBuf1[0], &g_pBuf1);
+	CreateRawBuffer(device, sizeof(int), NUM_ELEMENTS, &g_vBufRes[0], &g_pBufResult);
+
+	// Create acces views that can be handled by the CS
+	ID3D11UnorderedAccessView*  g_pBuf0UAV = nullptr;
+	ID3D11UnorderedAccessView*  g_pBuf1UAV = nullptr;
+	ID3D11UnorderedAccessView*	g_pBufResultUAV = nullptr;
+
+	// Creating shader resource views for reading and unordered access views for writing
+	std::cout << "Creating SRV and UAV for writing...";
+	CreateBufferUAV(device, g_pBuf0, &g_pBuf0UAV);
+	CreateBufferUAV(device, g_pBuf1, &g_pBuf1UAV);
+	CreateBufferUAV(device, g_pBufResult, &g_pBufResultUAV);
+	std::cout << " Done!" << std::endl;
+
+	printf("Running Compute Shader...");
+
+	{
+		context->CSSetShader(updPosCS, nullptr, 0);
+		context->CSSetUnorderedAccessViews(0, 1, &g_pBuf0UAV, nullptr);
+		context->CSSetUnorderedAccessViews(1, 1, &g_pBuf1UAV, nullptr);
+		context->CSSetUnorderedAccessViews(2, 1, &g_pBufResultUAV, nullptr);
+		context->Dispatch(NUM_ELEMENTS, 1, 1);
+
+
+
+		// Unbind shader and acces views
+		context->CSSetShader(nullptr, nullptr, 0);	
+		ID3D11UnorderedAccessView* ppUAViewnullptr[1] = { nullptr };
+		context->CSSetUnorderedAccessViews(0, 1, ppUAViewnullptr, nullptr);
+	}
+
+	printf("done\n");
+
+	// Read back the result from GPU, verify its correctness against result computed by CPU
+	{
+		ID3D11Buffer* debugbuf = CreateAndCopyToDebugBuf(device, context, g_pBufResult);
+		D3D11_MAPPED_SUBRESOURCE MappedResource;
+		context->Map(debugbuf, 0, D3D11_MAP_READ, 0, &MappedResource);
+
+		// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
+		// This is also a common trick to debug CS programs.
+		int *p = (int*)MappedResource.pData;
+
+		// Verify that if Compute Shader has done right
+		printf("Verifying against CPU result...");
+		bool bSuccess = true;
+
+		//Print first 10 results
+		for (size_t i = 0; i < 10; i++) {
+			printf("%d + %d = %d \n", g_vBuf0[i], g_vBuf1[i], p[i]);
+		}
+
+		context->Unmap(debugbuf, 0);
+		SAFE_RELEASE(debugbuf);
+	}
+	*/
+
+
+
+
+
+	// ======================================== //
+	// EX 2. Structured Buffers vector addition //
+	// ======================================== //
+	
+	// Create a device that the kernel will run on
+	std::cout << "Creating compute device... ";
+	if (FAILED(CreateComputeDevice(&device, &context, false))) exit(1);
+	std::cout << "Done!" << std::endl;
+
+
+	// Compile CS from source
+	std::cout << "Creating Compute Shaders...";
+	if (FAILED(CreateComputeShader(L"../Shaders/VectorAddCS.hlsl", "CSMain", device, &vecAddCS))) exit(1);
 	std::cout << " Done!" << std::endl;
 
 	// Create input data and buffers
@@ -30,10 +135,10 @@ DCSim::DCSim(){
 	for (int i = 0; i < NUM_ELEMENTS; ++i)
 	{
 		g_vBuf0[i].i = i;
-		g_vBuf0[i].f = (float)i;
+		g_vBuf0[i].f = (float)i + i/10.0f;
 
 		g_vBuf1[i].i = 2 * i;
-		g_vBuf1[i].f = 2.0f*(float)i;
+		g_vBuf1[i].f = 2.0f*(float)i + i/10.0f;
 	}
 
 	std::cout << " Done!" << std::endl;
@@ -42,18 +147,19 @@ DCSim::DCSim(){
 	ID3D11Buffer* g_pBuf1 = nullptr;
 	ID3D11Buffer* g_pBufResult = nullptr;
 
+	
+	// Create structured buffer from input data
 	CreateStructuredBuffer(device, sizeof(BufType), NUM_ELEMENTS, &g_vBuf0[0], &g_pBuf0);
 	CreateStructuredBuffer(device, sizeof(BufType), NUM_ELEMENTS, &g_vBuf1[0], &g_pBuf1);
 	CreateStructuredBuffer(device, sizeof(BufType), NUM_ELEMENTS, nullptr, &g_pBufResult);
-
 
 
 	ID3D11ShaderResourceView*   g_pBuf0SRV = nullptr;
 	ID3D11ShaderResourceView*   g_pBuf1SRV = nullptr;
 	ID3D11UnorderedAccessView*  g_pBufResultUAV = nullptr;
 
-	// Create buffer views
-	std::cout << "Creating buffer views...";
+	// Creating shader resource views for reading and unordered access views for writing
+	std::cout << "Creating SRV and UAV for writing...";
 	CreateBufferSRV(device, g_pBuf0, &g_pBuf0SRV);
 	CreateBufferSRV(device, g_pBuf1, &g_pBuf1SRV);
 	CreateBufferUAV(device, g_pBufResult, &g_pBufResultUAV);
@@ -61,10 +167,8 @@ DCSim::DCSim(){
 
 	printf("Running Compute Shader...");
 	ID3D11ShaderResourceView* aRViews[2] = { g_pBuf0SRV, g_pBuf1SRV };
-	RunComputeShader(context, computeShader, 2, aRViews, nullptr, nullptr, 0, g_pBufResultUAV, NUM_ELEMENTS, 1, 1);
+	RunComputeShader(context, vecAddCS, 2, aRViews, nullptr, nullptr, 0, g_pBufResultUAV, NUM_ELEMENTS, 1, 1);
 	printf("done\n");
-
-
 
 	
 	// Read back the result from GPU, verify its correctness against result computed by CPU
@@ -84,34 +188,30 @@ DCSim::DCSim(){
 
 		//Print first 10 results
 		for (size_t i = 0; i < 10; i++) {
-			printf("%d + %d = %d \n", g_vBuf0[i].i, g_vBuf1[i].i, p[i].i);
+			//printf("%d + %d = %d \n", g_vBuf0[i].i, g_vBuf1[i].i, p[i].i);
+			printf("%.1f + %.1f = %.1f \n", g_vBuf0[i].f, g_vBuf1[i].f, p[i].f);
 		}
 
-		for (int i = 0; i < NUM_ELEMENTS; ++i)
-			if ((p[i].i != g_vBuf0[i].i + g_vBuf1[i].i)
-				|| (p[i].f != g_vBuf0[i].f + g_vBuf1[i].f)
-				)
-			{
-			printf("failure\n");
-			bSuccess = false;
-
-			break;
-			}
-		if (bSuccess)
-			printf("succeeded\n");
-
 		context->Unmap(debugbuf, 0);
-
 		SAFE_RELEASE(debugbuf);
 	}
 	
+	
+	exit(1);
+
 	
 }
 
 DCSim::~DCSim() {
 	SAFE_RELEASE(device);
 	SAFE_RELEASE(context);
-	SAFE_RELEASE(computeShader);
+	SAFE_RELEASE(vecAddCS);
+}
+
+void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
+
+
+
 }
 
 void DCSim::step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt){
@@ -136,13 +236,13 @@ HRESULT DCSim::CreateComputeDevice(ID3D11Device** deviceOut, ID3D11DeviceContext
 		hr = D3D11CreateDevice(nullptr,     // Use default graphics card
 			D3D_DRIVER_TYPE_HARDWARE,		// Try to create a hardware accelerated device
 			nullptr,                        // Do not use external software rasterizer module
-			flags,					// Device creation flags
+			flags,							// Device creation flags
 			flvl,
 			sizeof(flvl) / sizeof(D3D_FEATURE_LEVEL),
-			D3D11_SDK_VERSION,           // SDK version
-			deviceOut,                 // Device out
-			&featureLevelOut,                      // Actual feature level created
-			contextOut);              // Context out
+			D3D11_SDK_VERSION,				// SDK version
+			deviceOut,						// Device out
+			&featureLevelOut,               // Actual feature level created
+			contextOut);					// Context out
 
 		if (SUCCEEDED(hr))
 		{
@@ -166,20 +266,19 @@ HRESULT DCSim::CreateComputeDevice(ID3D11Device** deviceOut, ID3D11DeviceContext
 	if (bForceRef || FAILED(hr) || bNeedRefDevice)
 	{
 		// Either because of failure on creating a hardware device or hardware lacking CS capability, we create a ref device here
-
 		SAFE_RELEASE(*deviceOut);
 		SAFE_RELEASE(*contextOut);
 
-		hr = D3D11CreateDevice(nullptr,                        // Use default graphics card
-			D3D_DRIVER_TYPE_REFERENCE,   // Try to create a hardware accelerated device
-			nullptr,                        // Do not use external software rasterizer module
-			flags,              // Device creation flags
+		hr = D3D11CreateDevice(nullptr,				// Use default graphics card
+			D3D_DRIVER_TYPE_REFERENCE,				// Try to create a hardware accelerated device
+			nullptr,								// Do not use external software rasterizer module
+			flags,									// Device creation flags
 			flvl,
 			sizeof(flvl) / sizeof(D3D_FEATURE_LEVEL),
-			D3D11_SDK_VERSION,           // SDK version
-			deviceOut,                 // Device out
-			&featureLevelOut,                      // Actual feature level created
-			contextOut);              // Context out
+			D3D11_SDK_VERSION,						// SDK version
+			deviceOut,								// Device out
+			&featureLevelOut,						// Actual feature level created
+			contextOut);							// Context out
 		if (FAILED(hr))
 		{
 			printf("Reference rasterizer device create failure\n");
@@ -206,9 +305,9 @@ HRESULT DCSim::CreateComputeShader(LPCWSTR pSrcFile, LPCSTR pFunctionName, ID3D1
 	// We generally prefer to use the higher CS shader profile when possible as CS 5.0 is better performance on 11-class hardware
 	LPCSTR pProfile = (pDevice->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_0) ? "cs_5_0" : "cs_4_0";
 
+
 	ID3DBlob* pErrorBlob = nullptr;
 	ID3DBlob* pBlob = nullptr;
-
 
 #if D3D_COMPILER_VERSION >= 46
 	hr = D3DCompileFromFile(pSrcFile, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, pFunctionName, pProfile, dwShaderFlags, 0, &pBlob, &pErrorBlob);
@@ -240,12 +339,36 @@ HRESULT DCSim::CreateComputeShader(LPCWSTR pSrcFile, LPCSTR pFunctionName, ID3D1
 	return hr;
 }
 
+HRESULT DCSim::CreateRawBuffer(ID3D11Device* pDevice, UINT uElementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut){
+	*ppBufOut = nullptr;
+
+	D3D11_BUFFER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+	desc.ByteWidth = uElementSize * uCount;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+	desc.StructureByteStride = uElementSize;
+
+	if (pInitData)
+	{
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = pInitData;
+		return pDevice->CreateBuffer(&desc, &InitData, ppBufOut);
+	}
+	else
+		return pDevice->CreateBuffer(&desc, nullptr, ppBufOut);
+}
+
 HRESULT DCSim::CreateStructuredBuffer(ID3D11Device* pDevice, UINT uElementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut)
 {
 	*ppBufOut = nullptr;
 
 	D3D11_BUFFER_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
+
+	
+
 	desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 	desc.ByteWidth = uElementSize * uCount;
 	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;

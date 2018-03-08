@@ -381,10 +381,12 @@ void ParticleSystem::render(float dt){
 	//CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
 	//CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 	
-	//clSim.updFor(ParticlesContainer, sNodeContainer, count, MAX_PARTICLES, dt);
+	clSim.updFor(ParticlesContainer, sNodeContainer, count, MAX_PARTICLES, dt);
 	//clSim.updPos(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 
+	dcSim.updPos(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
 	//dcSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
+	
 	
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);

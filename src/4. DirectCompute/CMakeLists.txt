@@ -38,18 +38,24 @@ file(GLOB PROJECT_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl)
 file(GLOB PROJECT_SOURCES   ${SRC_DIR}/*.cpp)
 file(GLOB PROJECT_HEADERS   ${SRC_DIR}/*.h)
 file(GLOB PROJECT_KERNELS   ${KRL_DIR}/*.cl)
+file(GLOB COMPUTE_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.hlsl)
 
+message(WARNING ${COMPUTE_SHADERS})
 
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Kernels" FILES ${PROJECT_KERNELS})
+source_group("CS" FILES ${COMPUTE_SHADERS})
 
+# Exclude .hlsl files from build
+set_source_files_properties(${COMPUTE_SHADERS} PROPERTIES VS_TOOL_OVERRIDE "None")
 
 add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
                                 	${PROJECT_HEADERS}
                                 	${PROJECT_SHADERS}
-                                    	${PROJECT_KERNELS})
+                                    ${PROJECT_KERNELS}
+									${COMPUTE_SHADERS})
 
 
 

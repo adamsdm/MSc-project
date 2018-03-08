@@ -17,6 +17,7 @@
 #include "Cell.h"
 #include "MyTimer.h"
 #include "DCSim.h"
+#include "OpenCLSim.h"
 
 
 
@@ -38,6 +39,7 @@ private:
 
 	// OpenCL wrapper class
 	DCSim dcSim;
+	OpenCLSim clSim;
 
 	// Box buffers
 	GLuint BoxVBO, BoxVAO, BoxEBO;
