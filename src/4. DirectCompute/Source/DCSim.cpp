@@ -147,6 +147,7 @@ DCSim::DCSim(){
 	ID3D11Buffer* g_pBuf1 = nullptr;
 	ID3D11Buffer* g_pBufResult = nullptr;
 
+
 	
 	// Create structured buffer from input data
 	CreateStructuredBuffer(device, sizeof(BufType), NUM_ELEMENTS, &g_vBuf0[0], &g_pBuf0);
@@ -166,8 +167,29 @@ DCSim::DCSim(){
 	std::cout << " Done!" << std::endl;
 
 	printf("Running Compute Shader...");
-	ID3D11ShaderResourceView* aRViews[2] = { g_pBuf0SRV, g_pBuf1SRV };
-	RunComputeShader(context, vecAddCS, 2, aRViews, nullptr, nullptr, 0, g_pBufResultUAV, NUM_ELEMENTS, 1, 1);
+	
+
+	{
+		context->CSSetShader(vecAddCS, nullptr, 0);
+		
+		ID3D11ShaderResourceView* aRViews[2] = { g_pBuf0SRV, g_pBuf1SRV };
+		context->CSSetShaderResources(0, 2, aRViews);
+
+		context->CSSetUnorderedAccessViews(0, 1, &g_pBufResultUAV, nullptr);
+		context->Dispatch(NUM_ELEMENTS, 1, 1);
+
+		context->CSSetShader(nullptr, nullptr, 0);
+
+		ID3D11UnorderedAccessView* ppUAViewnullptr[1] = { nullptr };
+		context->CSSetUnorderedAccessViews(0, 1, ppUAViewnullptr, nullptr);
+
+		ID3D11ShaderResourceView* ppSRVnullptr[2] = { nullptr, nullptr };
+		context->CSSetShaderResources(0, 2, ppSRVnullptr);
+
+		ID3D11Buffer* ppCBnullptr[1] = { nullptr };
+		context->CSSetConstantBuffers(0, 1, ppCBnullptr);
+	}
+
 	printf("done\n");
 
 	
