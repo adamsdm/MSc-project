@@ -4,12 +4,6 @@
 #define NUM_ELEMENTS	1024
 
 
-struct BufType
-{
-	int i;
-	float f;
-};
-
 
 DCSim::DCSim(){
 
@@ -243,53 +237,76 @@ DCSim::~DCSim() {
 
 void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
 
+
+
 	ID3D11Buffer* g_pos_buf = nullptr;
+	ID3D11Buffer* g_par_buf = nullptr;
+
 	ID3D11UnorderedAccessView*  g_pos_bufUAV = nullptr;
+	ID3D11UnorderedAccessView*  g_par_bufUAV = nullptr;
+
 	
 
 	// Create structured buffer from input data
 	CreateRawBuffer(device, sizeof(GLfloat), 3 * MAX_PARTICLES, &g_particule_position_size_data[0], &g_pos_buf);
+	CreateStructuredBuffer(device, sizeof(Particle), MAX_PARTICLES, &ParticlesContainer[0], &g_par_buf);
 
-	
 
 	// Creating shader resource views for reading and unordered access views for writing
 	CreateBufferUAV(device, g_pos_buf, &g_pos_bufUAV);
+	CreateBufferUAV(device, g_par_buf, &g_par_bufUAV);
 	
+
+	printf("x: %f\n", ParticlesContainer[0].px);
 
 	// Run shader
 	{
 		context->CSSetShader(updPosCS, nullptr, 0);
-		context->CSSetUnorderedAccessViews(0, 1, &g_pos_bufUAV, nullptr);
-		context->Dispatch(MAX_PARTICLES/1024, 1, 1);
-		context->CSSetShader(nullptr, nullptr, 0);
 
+		//ID3D11UnorderedAccessView* aRViews[2] = { g_pos_bufUAV, g_par_bufUAV };
+		//context->CSSetUnorderedAccessViews(0, 2, aRViews, nullptr);
+
+		context->CSSetUnorderedAccessViews(0, 1, &g_pos_bufUAV, nullptr);
+		context->CSSetUnorderedAccessViews(1, 1, &g_par_bufUAV, nullptr);
+
+		context->Dispatch(MAX_PARTICLES/1024, 1, 1);
+
+
+		context->CSSetShader(nullptr, nullptr, 0);
 		ID3D11UnorderedAccessView* ppUAViewnullptr[1] = { nullptr };
 		context->CSSetUnorderedAccessViews(0, 1, ppUAViewnullptr, nullptr);
-
 		ID3D11ShaderResourceView* ppSRVnullptr[2] = { nullptr, nullptr };
 		context->CSSetShaderResources(0, 2, ppSRVnullptr);
-
 		ID3D11Buffer* ppCBnullptr[1] = { nullptr };
 		context->CSSetConstantBuffers(0, 1, ppCBnullptr);
 	}
 
 	// Read back the result from GPU, verify its correctness against result computed by CPU
 	{
-		ID3D11Buffer* debugbuf = CreateAndCopyToDebugBuf(device, context, g_pos_buf);
-		D3D11_MAPPED_SUBRESOURCE MappedResource;
-		context->Map(debugbuf, 0, D3D11_MAP_READ, 0, &MappedResource);
 
-		// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
-		// This is also a common trick to debug CS programs.
-		
-		memcpy(g_particule_position_size_data, (GLfloat*)MappedResource.pData, 3 * MAX_PARTICLES*sizeof(GLfloat));
-		
+		// Retrieve positions
+		ID3D11Buffer* posDebugbuf = CreateAndCopyToDebugBuf(device, context, g_pos_buf);
+		D3D11_MAPPED_SUBRESOURCE posMappedResource;
 
-		context->Unmap(debugbuf, 0);	
-		SAFE_RELEASE(debugbuf);
+		context->Map(posDebugbuf, 0, D3D11_MAP_READ, 0, &posMappedResource);
+		memcpy(g_particule_position_size_data, (GLfloat*)posMappedResource.pData, 3 * MAX_PARTICLES*sizeof(GLfloat));
+		context->Unmap(posDebugbuf, 0);
+
+		SAFE_RELEASE(posDebugbuf);
+
+
+		// Retrieve particles
+		ID3D11Buffer* parDebugbuf = CreateAndCopyToDebugBuf(device, context, g_par_buf);
+		D3D11_MAPPED_SUBRESOURCE parMappedResource;
+
+		context->Map(parDebugbuf, 0, D3D11_MAP_READ, 0, &parMappedResource);
+		memcpy(ParticlesContainer, (Particle*) parMappedResource.pData, MAX_PARTICLES*sizeof(Particle));
+		context->Unmap(parDebugbuf, 0);
+
+		SAFE_RELEASE(parDebugbuf);
 	}
 	
-
+	SAFE_RELEASE(g_pos_bufUAV);
 	SAFE_RELEASE(g_pos_buf);
 	
 }
