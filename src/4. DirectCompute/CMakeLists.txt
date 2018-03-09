@@ -40,8 +40,6 @@ file(GLOB PROJECT_HEADERS   ${SRC_DIR}/*.h)
 file(GLOB PROJECT_KERNELS   ${KRL_DIR}/*.cl)
 file(GLOB COMPUTE_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.hlsl)
 
-message(WARNING ${COMPUTE_SHADERS})
-
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
