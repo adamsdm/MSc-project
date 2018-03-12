@@ -48,11 +48,6 @@ RWStructuredBuffer<Particle>		particles	: register(u0);
 StructuredBuffer<sOctreeNode>		nodes		: register(t0);
 
 
-class temp {
-private:
-		int a;
-};
-
 [numthreads(1024, 1, 1)]
 void UpdFor(uint3 DTid : SV_DispatchThreadID)
 {
