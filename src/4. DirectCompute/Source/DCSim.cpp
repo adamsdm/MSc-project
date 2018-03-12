@@ -236,6 +236,7 @@ DCSim::~DCSim() {
 
 struct CS_CONSTANTS {
 	int MAX_PARTICLES;
+	int count;
 	float dt;
 	float simspeed;
 };
@@ -256,6 +257,7 @@ void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_s
 	// Constants to be passed to CS
 	CS_CONSTANTS csConsts = {
 		MAX_PARTICLES,		// MAX_PARTICLES
+		NULL,				// count
 		dt,					// dt
 		0.01				// simspeed
 	};
@@ -338,11 +340,6 @@ void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_s
 }
 
 
-struct CS_CONSTANTS_FORCE {
-	int MAX_PARTICLES;
-	int count;
-};
-
 void DCSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int count, int MAX_PARTICLES, float dt){
 	HRESULT hr = S_OK;
 
@@ -357,9 +354,11 @@ void DCSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int
 
 	// Create buffers
 	// Constants to be passed to CS
-	CS_CONSTANTS_FORCE csConsts = {
+	CS_CONSTANTS csConsts = {
 		MAX_PARTICLES,		// MAX_PARTICLES
-		count				// count
+		count,				// count
+		NULL,				// dt
+		NULL				// simspeed
 	};
 
 	D3D11_BUFFER_DESC Desc;
@@ -367,7 +366,7 @@ void DCSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int
 	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	Desc.MiscFlags = 0;
-	Desc.ByteWidth = ceil(sizeof(CS_CONSTANTS_FORCE) / 16.0f) * 16; // ByteWidth must be multiple of 16 so we round to nearest multiple of 16
+	Desc.ByteWidth = ceil(sizeof(CS_CONSTANTS) / 16.0f) * 16; // ByteWidth must be multiple of 16 so we round to nearest multiple
 
 	// Create buffer and initialize with data
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -424,8 +423,43 @@ void DCSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int
 	SAFE_RELEASE(g_par_bufUAV);
 }
 
+
 void DCSim::step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt){
-	std::cout << "DC STEP" << std::endl;
+	HRESULT hr = S_OK;
+
+	// Buffers
+	ID3D11Buffer* g_pos_buf = nullptr;
+	ID3D11Buffer* g_par_buf = nullptr;
+	ID3D11Buffer* g_nod_buf = nullptr;
+	ID3D11Buffer* g_const_buf = nullptr;
+
+	// Access views
+	ID3D11UnorderedAccessView*  g_par_bufUAV = nullptr;
+	ID3D11ShaderResourceView*  g_nod_bufSRV = nullptr;
+	ID3D11UnorderedAccessView*  g_pos_bufUAV = nullptr;
+
+	// Create buffers
+	// Constants to be passed to CS
+	CS_CONSTANTS csConsts = {
+		MAX_PARTICLES,		// MAX_PARTICLES
+		count,				// count
+		dt,					// dt
+		0.01				// simspeed
+	};
+
+	D3D11_BUFFER_DESC Desc;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	Desc.MiscFlags = 0;
+	Desc.ByteWidth = ceil(sizeof(CS_CONSTANTS) / 16.0f) * 16; // ByteWidth must be multiple of 16 so we round to nearest multiple
+
+	// Create buffer and initialize with data
+	D3D11_SUBRESOURCE_DATA InitData;
+	InitData.pSysMem = &csConsts;
+	CHECK_ERR(device->CreateBuffer(&Desc, &InitData, &g_const_buf));
+
+
 }
 
 HRESULT DCSim::CreateComputeDevice(ID3D11Device** deviceOut, ID3D11DeviceContext** contextOut, bool bForceRef){

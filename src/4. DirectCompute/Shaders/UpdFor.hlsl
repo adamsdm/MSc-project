@@ -42,7 +42,9 @@ cbuffer CB : register(b0)
 {
 	int MAX_PARTICLES;
 	int count;
-}
+	float dt;
+	float simspeed;
+};
 
 RWStructuredBuffer<Particle>		particles	: register(u0);
 StructuredBuffer<sOctreeNode>		nodes		: register(t0);
