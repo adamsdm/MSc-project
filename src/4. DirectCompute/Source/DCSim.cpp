@@ -15,6 +15,7 @@ DCSim::DCSim(){
 	// Compile CS from source
 	std::cout << "Creating Compute Shaders...";
 	if (FAILED(CreateComputeShader(L"../Shaders/UpdPos.hlsl", "CSMain", device, &updPosCS))) exit(1);
+	if (FAILED(CreateComputeShader(L"../Shaders/UpdFor.hlsl", "UpdFor", device, &updForCS))) exit(1);
 	std::cout << " Done!" << std::endl;
 
 	// ================================= //
@@ -336,8 +337,91 @@ void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_s
 	
 }
 
-void DCSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int count, int MAX_PARTICLES, float dt){
 
+struct CS_CONSTANTS_FORCE {
+	int MAX_PARTICLES;
+	int count;
+};
+
+void DCSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int count, int MAX_PARTICLES, float dt){
+	HRESULT hr = S_OK;
+
+	// Buffers
+	ID3D11Buffer* g_par_buf = nullptr;
+	ID3D11Buffer* g_nod_buf = nullptr;
+	ID3D11Buffer* g_const_buf = nullptr;
+
+	// Access views
+	ID3D11UnorderedAccessView*  g_par_bufUAV = nullptr;
+	ID3D11ShaderResourceView*  g_nod_bufSRV = nullptr;
+
+	// Create buffers
+	// Constants to be passed to CS
+	CS_CONSTANTS_FORCE csConsts = {
+		MAX_PARTICLES,		// MAX_PARTICLES
+		count				// count
+	};
+
+	D3D11_BUFFER_DESC Desc;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	Desc.MiscFlags = 0;
+	Desc.ByteWidth = ceil(sizeof(CS_CONSTANTS_FORCE) / 16.0f) * 16; // ByteWidth must be multiple of 16 so we round to nearest multiple of 16
+
+	// Create buffer and initialize with data
+	D3D11_SUBRESOURCE_DATA InitData;
+	InitData.pSysMem = &csConsts;
+	CHECK_ERR(device->CreateBuffer(&Desc, &InitData, &g_const_buf));
+	CHECK_ERR(CreateStructuredBuffer(device, sizeof(Particle), MAX_PARTICLES, &ParticlesContainer[0], &g_par_buf));
+	CHECK_ERR(CreateStructuredBuffer(device, sizeof(sOctreeNode), count, &nodeContainer[0], &g_nod_buf));
+
+
+	// Creating shader resource views for reading and unordered access views for writing
+	CHECK_ERR(CreateBufferUAV(device, g_par_buf, &g_par_bufUAV));
+	CHECK_ERR(CreateBufferSRV(device, g_nod_buf, &g_nod_bufSRV));
+
+	// Run shader
+	{
+		context->CSSetShader(updForCS, nullptr, 0);
+
+		// "pass" arguments
+		ID3D11UnorderedAccessView* aRViews[1] = { g_par_bufUAV };
+		context->CSSetUnorderedAccessViews(0, 1, aRViews, nullptr);
+		context->CSSetShaderResources(0, 1, &g_nod_bufSRV);
+		context->CSSetConstantBuffers(0, 1, &g_const_buf);
+
+		// Run CS
+		context->Dispatch(MAX_PARTICLES / 1024, 1, 1);
+		
+		// Unmap resources
+		context->CSSetShader(nullptr, nullptr, 0);
+		ID3D11UnorderedAccessView* ppUAViewnullptr[1] = { nullptr };
+		context->CSSetUnorderedAccessViews(0, 1, ppUAViewnullptr, nullptr);
+		ID3D11ShaderResourceView* ppSRVnullptr[2] = { nullptr, nullptr };
+		context->CSSetShaderResources(0, 2, ppSRVnullptr);
+		ID3D11Buffer* ppCBnullptr[1] = { nullptr };
+		context->CSSetConstantBuffers(0, 1, ppCBnullptr);
+	}
+	// Read back the result from GPU, verify its correctness against result computed by CPU
+	{
+
+		// Retrieve particles
+		ID3D11Buffer* parDebugbuf = CreateAndCopyToDebugBuf(device, context, g_par_buf);
+		D3D11_MAPPED_SUBRESOURCE parMappedResource;
+
+		context->Map(parDebugbuf, 0, D3D11_MAP_READ, 0, &parMappedResource);
+		memcpy(ParticlesContainer, (Particle*)parMappedResource.pData, MAX_PARTICLES*sizeof(Particle));
+		context->Unmap(parDebugbuf, 0);
+
+		SAFE_RELEASE(parDebugbuf);
+	}
+
+
+	// Clean up	
+	SAFE_RELEASE(g_par_buf);
+
+	SAFE_RELEASE(g_par_bufUAV);
 }
 
 void DCSim::step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt){
