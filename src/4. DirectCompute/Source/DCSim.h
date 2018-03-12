@@ -10,6 +10,7 @@
 #include "Particle.h"
 #include "OctreeNode.h"
 #include "sOctreeNode.h"
+#include "dxerr.h"
 
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib,"d3dcompiler.lib")
@@ -17,6 +18,14 @@
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=nullptr; } }
 #endif
+#ifndef CHECK_ERR
+#define CHECK_ERR(x)    { hr = (x); if( FAILED(hr) ) { DXTraceW( __FILEW__, __LINE__, hr, L#x, true ); exit(1); } }
+#endif
+#ifndef CHECK_ERR
+#define CHECK_ERR(x)	x;
+#endif
+
+
 
 class DCSim {
 	
@@ -33,6 +42,7 @@ private:
 
 	HRESULT CreateStructuredBuffer(ID3D11Device* pDevice, UINT uElementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut);
 	HRESULT CreateRawBuffer(ID3D11Device* pDevice, UINT uElementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut);
+	HRESULT CreateConstantBuffer(ID3D11Device* pDevice, UINT uElementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut);
 
 	HRESULT CreateBufferSRV(ID3D11Device* pDevice, ID3D11Buffer* pBuffer, ID3D11ShaderResourceView** ppSRVOut); 
 	HRESULT CreateBufferUAV(ID3D11Device* pDevice, ID3D11Buffer* pBuffer, ID3D11UnorderedAccessView** pUAVOut);

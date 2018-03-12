@@ -113,9 +113,6 @@ DCSim::DCSim(){
 	*/
 
 
-
-
-
 	// ======================================== //
 	// EX 2. Structured Buffers vector addition //
 	// ======================================== //
@@ -235,39 +232,59 @@ DCSim::~DCSim() {
 	SAFE_RELEASE(vecAddCS);
 }
 
+
+struct CS_CONSTANTS {
+	int MAX_PARTICLES;
+	float dt;
+	float simspeed;
+};
+
 void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, float dt){
 
+	HRESULT hr = S_OK;
 
-
+	// Buffers
 	ID3D11Buffer* g_pos_buf = nullptr;
 	ID3D11Buffer* g_par_buf = nullptr;
+	ID3D11Buffer* g_const_buf = nullptr;
 
+	// Access views
 	ID3D11UnorderedAccessView*  g_pos_bufUAV = nullptr;
 	ID3D11UnorderedAccessView*  g_par_bufUAV = nullptr;
 
+	// Constants to be passed to CS
+	CS_CONSTANTS csConsts = {
+		MAX_PARTICLES,		// MAX_PARTICLES
+		dt,					// dt
+		0.01				// simspeed
+	};
 	
+	D3D11_BUFFER_DESC Desc;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	Desc.MiscFlags = 0;
+	Desc.ByteWidth = ceil(sizeof(CS_CONSTANTS) / 16.0f) * 16; // ByteWidth must be multiple of 16 so we round to nearest multiple of 16
 
-	// Create structured buffer from input data
-	CreateRawBuffer(device, sizeof(GLfloat), 3 * MAX_PARTICLES, &g_particule_position_size_data[0], &g_pos_buf);
-	CreateStructuredBuffer(device, sizeof(Particle), MAX_PARTICLES, &ParticlesContainer[0], &g_par_buf);
+	// Create buffer and initialize with data
+	D3D11_SUBRESOURCE_DATA InitData;
+	InitData.pSysMem = &csConsts;
+	CHECK_ERR(device->CreateBuffer(&Desc, &InitData, &g_const_buf));
 
+	CHECK_ERR(CreateRawBuffer(device, sizeof(GLfloat), 3 * MAX_PARTICLES, &g_particule_position_size_data[0], &g_pos_buf));
+	CHECK_ERR(CreateStructuredBuffer(device, sizeof(Particle), MAX_PARTICLES, &ParticlesContainer[0], &g_par_buf));
 
 	// Creating shader resource views for reading and unordered access views for writing
-	CreateBufferUAV(device, g_pos_buf, &g_pos_bufUAV);
-	CreateBufferUAV(device, g_par_buf, &g_par_bufUAV);
-	
-
-	printf("x: %f\n", ParticlesContainer[0].px);
+	CHECK_ERR(CreateBufferUAV(device, g_pos_buf, &g_pos_bufUAV));
+	CHECK_ERR(CreateBufferUAV(device, g_par_buf, &g_par_bufUAV));
 
 	// Run shader
 	{
 		context->CSSetShader(updPosCS, nullptr, 0);
 
-		//ID3D11UnorderedAccessView* aRViews[2] = { g_pos_bufUAV, g_par_bufUAV };
-		//context->CSSetUnorderedAccessViews(0, 2, aRViews, nullptr);
-
-		context->CSSetUnorderedAccessViews(0, 1, &g_pos_bufUAV, nullptr);
-		context->CSSetUnorderedAccessViews(1, 1, &g_par_bufUAV, nullptr);
+		ID3D11UnorderedAccessView* aRViews[2] = { g_pos_bufUAV, g_par_bufUAV };
+		context->CSSetUnorderedAccessViews(0, 2, aRViews, nullptr);
+		context->CSSetConstantBuffers(0, 1, &g_const_buf);
 
 		context->Dispatch(MAX_PARTICLES/1024, 1, 1);
 
@@ -306,8 +323,11 @@ void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_s
 		SAFE_RELEASE(parDebugbuf);
 	}
 	
-	SAFE_RELEASE(g_pos_bufUAV);
 	SAFE_RELEASE(g_pos_buf);
+	SAFE_RELEASE(g_par_buf);
+
+	SAFE_RELEASE(g_pos_bufUAV);
+	SAFE_RELEASE(g_par_bufUAV);
 	
 }
 
@@ -464,12 +484,33 @@ HRESULT DCSim::CreateStructuredBuffer(ID3D11Device* pDevice, UINT uElementSize, 
 	D3D11_BUFFER_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 
-	
-
 	desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 	desc.ByteWidth = uElementSize * uCount;
 	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	desc.StructureByteStride = uElementSize;
+
+	if (pInitData)
+	{
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = pInitData;
+		return pDevice->CreateBuffer(&desc, &InitData, ppBufOut);
+	}
+	else
+		return pDevice->CreateBuffer(&desc, nullptr, ppBufOut);
+}
+
+HRESULT DCSim::CreateConstantBuffer(ID3D11Device* pDevice, UINT uElementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut)
+{
+	*ppBufOut = nullptr;
+
+	D3D11_BUFFER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+	desc.ByteWidth = uElementSize * uCount;
 
 	if (pInitData)
 	{
