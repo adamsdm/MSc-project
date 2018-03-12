@@ -277,18 +277,21 @@ void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_s
 	// Creating shader resource views for reading and unordered access views for writing
 	CHECK_ERR(CreateBufferUAV(device, g_pos_buf, &g_pos_bufUAV));
 	CHECK_ERR(CreateBufferUAV(device, g_par_buf, &g_par_bufUAV));
+		
 
 	// Run shader
 	{
 		context->CSSetShader(updPosCS, nullptr, 0);
 
+		// "pass" arguments
 		ID3D11UnorderedAccessView* aRViews[2] = { g_pos_bufUAV, g_par_bufUAV };
 		context->CSSetUnorderedAccessViews(0, 2, aRViews, nullptr);
 		context->CSSetConstantBuffers(0, 1, &g_const_buf);
 
+		// Run CS
 		context->Dispatch(MAX_PARTICLES/1024, 1, 1);
 
-
+		// Unmap resources
 		context->CSSetShader(nullptr, nullptr, 0);
 		ID3D11UnorderedAccessView* ppUAViewnullptr[1] = { nullptr };
 		context->CSSetUnorderedAccessViews(0, 1, ppUAViewnullptr, nullptr);
@@ -323,12 +326,18 @@ void DCSim::updPos(Particle *ParticlesContainer, GLfloat *g_particule_position_s
 		SAFE_RELEASE(parDebugbuf);
 	}
 	
+	// Clean up
+	SAFE_RELEASE(g_const_buf);
 	SAFE_RELEASE(g_pos_buf);
 	SAFE_RELEASE(g_par_buf);
 
 	SAFE_RELEASE(g_pos_bufUAV);
 	SAFE_RELEASE(g_par_bufUAV);
 	
+}
+
+void DCSim::updFor(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int count, int MAX_PARTICLES, float dt){
+
 }
 
 void DCSim::step(Particle *ParticlesContainer, sOctreeNode *nodeContainer, GLfloat *g_particule_position_size_data, int count, unsigned int MAX_PARTICLES, float dt){
