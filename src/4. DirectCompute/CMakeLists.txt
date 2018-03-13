@@ -6,17 +6,6 @@ project(DirectComputeBarnesHut)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 
-
-# OpenCL
-find_package( OpenCL REQUIRED )
-MESSAGE( STATUS "CL FOUND?: " ${OPENCL_FOUND} )
-MESSAGE( STATUS "INC. DIRS: " ${OPENCL_INCLUDE_DIRS} )
-MESSAGE( STATUS "INC. LIBS: " ${OPENCL_LIBRARIES} )
-MESSAGE( STATUS "OCL Versi: " ${OPENCL_VERSION_STRING} )
-MESSAGE( STATUS "HAS CXX??: " ${OPENCL_HAS_CXX} )
-
-
-
 set(SRC_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/Source")
 set(EXT_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/External")
 set(KRL_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/CLKernels")
@@ -61,14 +50,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 include_directories(${PROJECT_NAME} ${SRC_DIR}
                                     ${GLM_DIR}
                                     ${GLFW_DIR}/include
-                                    ${GLAD_DIR}/include
-                                    ${OPENCL_INCLUDE_DIR})
+                                    ${GLAD_DIR}/include)
 
 
-# OpenCL
-
-
-target_link_libraries(${PROJECT_NAME} ${OPENCL_LIBRARIES})
 
 # GLFW
 option(GLFW_BUILD_DOCS OFF)

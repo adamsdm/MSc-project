@@ -90,7 +90,6 @@ int main() {
 	int width, height, nrChannels;
 	unsigned char *data = stbi_load("../Resources/sun.png", &width, &height, &nrChannels, 0);
 
-	
 
 	if (data)
 	{
