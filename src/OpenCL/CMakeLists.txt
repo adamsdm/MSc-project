@@ -1,5 +1,5 @@
 # ============================================================= #
-# DirectCompute N-Body Barnes-Hut implementation
+# OpenCL N-Body Barnes-Hut implementation
 # Adam Söderström, 2018-03-15, adaso578@student.liu.se
 # ============================================================= #
 
@@ -28,11 +28,13 @@ file(GLOB PROJECT_KERNELS   ${KRL_DIR}/*.cl)
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
+source_group("Common"  FILES ${COMMON_SOURCES})
 source_group("Kernels" FILES ${PROJECT_KERNELS})
 
 
 add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
                                 	${PROJECT_HEADERS}
+									${COMMON_SOURCES}
                                 	${PROJECT_SHADERS}
                                     ${PROJECT_KERNELS})
 
@@ -40,6 +42,7 @@ add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 include_directories(${PROJECT_NAME} ${SRC_DIR}
+									${COMMON_DIR}
 									${SHADER_DIR}
                                     ${GLM_DIR}
                                     ${GLFW_DIR}/include

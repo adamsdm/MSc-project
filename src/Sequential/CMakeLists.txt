@@ -23,17 +23,20 @@ file(GLOB PROJECT_HEADERS   ${SRC_DIR}/*.h)
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
+source_group("Common"  FILES ${COMMON_SOURCES})
 
 
 
 add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
                                 	${PROJECT_HEADERS}
+									${COMMON_SOURCES}
                                 	${PROJECT_SHADERS})
 
 
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 include_directories(${PROJECT_NAME} ${SRC_DIR}
+									${COMMON_DIR}
 									${SHADER_DIR}
                                     ${GLM_DIR}
                                     ${GLFW_DIR}/include

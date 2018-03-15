@@ -1,5 +1,5 @@
 # ============================================================= #
-# OpenCL N-Body Barnes-Hut implementation
+# DirectCompute N-Body Barnes-Hut implementation
 # Adam Söderström, 2018-03-15, adaso578@student.liu.se
 # ============================================================= #
 
@@ -28,6 +28,7 @@ file(GLOB COMPUTE_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.hlsl)
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
+source_group("Common"  FILES ${COMMON_SOURCES})
 source_group("CS" FILES ${COMPUTE_SHADERS})
 
 # Exclude .hlsl files from build
@@ -35,6 +36,7 @@ set_source_files_properties(${COMPUTE_SHADERS} PROPERTIES VS_TOOL_OVERRIDE "None
 
 add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
                                 	${PROJECT_HEADERS}
+									${COMMON_SOURCES}
                                 	${PROJECT_SHADERS}
 									${COMPUTE_SHADERS})
 
@@ -43,6 +45,7 @@ add_executable(${PROJECT_NAME}  	${PROJECT_SOURCES}
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 include_directories(${PROJECT_NAME} ${SRC_DIR}
+									${COMMON_DIR}
 									${SHADER_DIR}
                                     ${GLM_DIR}
                                     ${GLFW_DIR}/include
