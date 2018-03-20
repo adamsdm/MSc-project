@@ -58,11 +58,8 @@ void ParticleSystem::renderCOM(OctreeNode *node, Shader comShader){
 		0.0f, 0.5f, 0.0f
 	};
 
-	
-	Cell *c = (Cell*)node->usr_val;
-
 	glm::mat4 model(1.0f);
-	model = glm::translate(model, glm::vec3(c->com_x, c->com_y, c->com_z));
+	model = glm::translate(model, glm::vec3(node->com_x, node->com_y, node->com_z));
 	model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
 	comShader.setMat4("model", model);
 
@@ -246,57 +243,50 @@ void ParticleSystem::calcTreeCOM(OctreeNode *node){
 	// If node is an empty cell
 	else {
 
-		node->usr_val = new Cell;
-		Cell *p = (Cell*)node->usr_val;
-		p->m = 0.0f; p->com_x = 0.0f; p->com_y = 0.0f; p->com_z = 0.0f;
+		node->m = 0.0f;
+		node->com_x = 0.0f;
+		node->com_y = 0.0f;
+		node->com_z = 0.0f;
 
 		// Step through the childrens to add their mass to this node
 		for (int i = 0; i < 8; i++){
 			if (node->getChild(i) != nullptr){
 				calcTreeCOM(node->getChild(i));
-				Cell *child_c = (Cell*)node->getChild(i)->usr_val;
 
+				OctreeNode *child = node->getChild(i);
 
 				//float child_mass = child_pt->mass;
-				p->m += child_c->m;
-				p->com_x += child_c->m*(child_c->com_x);
-				p->com_y += child_c->m*(child_c->com_y);
-				p->com_z += child_c->m*(child_c->com_z);
+				node->m += child->m;
+				node->com_x += child->m*(child->com_x);
+				node->com_y += child->m*(child->com_y);
+				node->com_z += child->m*(child->com_z);
 			}
 		}
-		p->com_x /= p->m;
-		p->com_y /= p->m;
-		p->com_z /= p->m;
+		node->com_x /= node->m;
+		node->com_y /= node->m;
+		node->com_z /= node->m;
 	}
 }
 
 void ParticleSystem::buildTree(){
+
 	float minx, miny, minz, maxx, maxy, maxz;
 	getBounds(minx, maxx, miny, maxy, minz, maxz);
+
 	root = new OctreeNode(minx, miny, minz, maxx, maxy, maxz);
 
-	
+
 	for (int i = 0; i < MAX_PARTICLES; i++){
 		Particle p = ParticlesContainer[i];
-
-		Cell *c = new Cell;
-		c->m = p.weight;
-		c->com_x = p.px;
-		c->com_y = p.py;
-		c->com_z = p.pz;
-
-		root->insert(p.px, p.py, p.pz, c);
+		root->insert(p.px, p.py, p.pz, p.weight, p.px, p.py, p.pz);
 	}
-
-	// Calculate centers of mass for the tree
-	calcTreeCOM(root);
-	
 }
 
 void ParticleSystem::render(float dt){
 	
 	buildTree();
-	//updateForces(dt);
+	calcTreeCOM(root);
+
 	BarnesHutUpdateForces(dt);
 	updatePositions(dt);
 
@@ -334,11 +324,10 @@ void ParticleSystem::calcParticleForce(Particle &p, OctreeNode *node, float dt){
 	
 	if (!node) return ;
 
-	Cell *nodeData = (Cell*) node->usr_val;
 	
-	float dx = nodeData->com_x - p.px;
-	float dy = nodeData->com_y - p.py;
-	float dz = nodeData->com_z - p.pz;
+	float dx = node->com_x - p.px;
+	float dy = node->com_y - p.py;
+	float dz = node->com_z - p.pz;
 
 	float dist = sqrt(dx*dx + dy*dy + dz*dz);
 
@@ -351,7 +340,8 @@ void ParticleSystem::calcParticleForce(Particle &p, OctreeNode *node, float dt){
 	// The node is far away enough to be evaluated as a single node
 	if (width / dist < 0.5){
 
-		float F = (G * p.weight * nodeData->m) / (dist + 1.0f + SOFTENING * SOFTENING);
+		float F = (G * p.weight * node->m) / (dist + 1.0f + SOFTENING * SOFTENING);
+		
 
 		p.vx += F * dx / dist;
 		p.vy += F * dy / dist;
@@ -369,6 +359,7 @@ void ParticleSystem::calcParticleForce(Particle &p, OctreeNode *node, float dt){
 
 void ParticleSystem::BarnesHutUpdateForces(float dt){
 	
+
 	
 	for (int i = 0; i < MAX_PARTICLES; i++){
 
@@ -376,10 +367,8 @@ void ParticleSystem::BarnesHutUpdateForces(float dt){
 		calcParticleForce(p, root, dt);
 		ParticlesContainer[i] = p;
 	}
-	
 
-	//updateForces(dt);
-	
+
 }
 
 // These functions should launch the kernels for the respective framework

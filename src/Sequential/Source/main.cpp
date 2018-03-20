@@ -192,7 +192,7 @@ int main() {
 		}
 				
 		// IMPORTANT: Dealocate the tree, otherwise we get a huge memoryleak since new nodes are added recursively, resulting in an infinite tree
-		particlesystem.getTree()->free();
+		particlesystem.getTree()->freeTree();
 
 
 		glfwSwapBuffers(window);
