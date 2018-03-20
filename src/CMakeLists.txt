@@ -38,9 +38,14 @@ else()
 endif()
 
 
+# setup CMake config file
+configure_file(${COMMON_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
+
+
 include_directories(${GLFW_DIR}/include
                     ${GLAD_DIR}/include
-					${GLM_DIR})
+					${GLM_DIR}
+					${CMAKE_BINARY_DIR})
 
 
 # GLFW
@@ -64,6 +69,13 @@ option(BUILD_SKEPU "Builds SkePU implemenation" OFF)
 
 
 # Building options
+
+option(BUILD_TESTING "Builds and enables testing" OFF)
+
+if(BUILD_TESTING)
+	message(WARNING "Building for tests")
+endif(BUILD_TESTING)
+
 if(BUILD_ALL)
 		add_subdirectory(Sequential) 
 		add_subdirectory(CUDA) 
@@ -92,3 +104,4 @@ else(BUILD_ALL)
 	endif(BUILD_SKEPU)
 
 endif(BUILD_ALL)
+

@@ -1,0 +1,4 @@
+// CMake generated config file
+// Defines are set by the CMake configuration
+
+#cmakedefine BUILD_TESTING
