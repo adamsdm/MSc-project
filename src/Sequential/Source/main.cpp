@@ -21,6 +21,7 @@
 #include "Application.h"
 #include "ParticleSystem.h"
 #include "OctreeNode.h"
+#include "config.h"
 
 
 // Global application state
@@ -53,9 +54,12 @@ void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 
-
 int main() {
 
+#ifdef BUILD_TESTING
+	std::cout << "Testing sequential..." << std::endl;
+	return 0;
+#endif
 
 	// Create a window
 	GLFWwindow* window = App::initialize(W, H);

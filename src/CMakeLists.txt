@@ -81,6 +81,7 @@ if(BUILD_ALL)
 		add_subdirectory(CUDA) 
 		add_subdirectory(OpenCL) 
 		add_subdirectory(DirectCompute) 
+		add_subdirectory(SkePU)
 else(BUILD_ALL)
 
 	if(BUILD_SEQUENTIAL)

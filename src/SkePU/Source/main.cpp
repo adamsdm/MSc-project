@@ -21,6 +21,7 @@
 #include "Application.h"
 #include "ParticleSystem.h"
 #include "OctreeNode.h"
+#include "config.h"
 
 
 // Global application state
@@ -54,6 +55,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 
 int main() {
+
+#ifdef BUILD_TESTING
+	std::cout << "Testing SkePU..." << std::endl;
+	return 0;
+#endif
 
 	// Create a window
 	GLFWwindow* window = App::initialize(W, H);
