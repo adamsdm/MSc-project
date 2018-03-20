@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
-#include <amp_math.h>
 #include <glm/glm.hpp>
 #include <limits>
 #include <queue>
@@ -16,6 +15,7 @@
 #include "Particle.h"
 #include "Cell.h"
 #include "MyTimer.h"
+#include "SkepuSim.h"
 
 
 
@@ -36,7 +36,7 @@ private:
 	static const GLfloat g_vertex_buffer_data[];
 
 	// SkePU wrapper class
-	// SkePUSim skeSim;
+	SkepuSim skeSim;
 
 	// Box buffers
 	GLuint BoxVBO, BoxVAO, BoxEBO;

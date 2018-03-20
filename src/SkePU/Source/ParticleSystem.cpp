@@ -370,15 +370,14 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count) {
 
 void ParticleSystem::render(float dt){
 	
-	std::chrono::high_resolution_clock::time_point start, tBuildTree, tCalcCOM, tFlatten, tCudaStep;
-
+	
 	buildTree();
 	calcTreeCOM(root);
 	int count = 0;
 	flattenTree(root, count);
 
 	//clSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
-	
+	skeSim.step();
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
