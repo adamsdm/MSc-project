@@ -60,6 +60,7 @@ option(BUILD_SEQUENTIAL "Builds sequential implemenation" OFF)
 option(BUILD_CUDA "Builds CUDA implemenation" OFF)
 option(BUILD_OPENCL "Builds OpenCL implemenation" OFF)
 option(BUILD_DIRECTCOMPUTE "Builds DirectCompute implemenation" OFF)
+option(BUILD_SKEPU "Builds SkePU implemenation" OFF)
 
 
 # Building options
@@ -85,4 +86,9 @@ else(BUILD_ALL)
 	if(BUILD_DIRECTCOMPUTE)
 		add_subdirectory(DirectCompute) 
 	endif(BUILD_DIRECTCOMPUTE)
+
+	if(BUILD_SKEPU)
+		add_subdirectory(SkePU) 
+	endif(BUILD_SKEPU)
+
 endif(BUILD_ALL)
