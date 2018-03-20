@@ -11,6 +11,11 @@
 #include "Camera.h"
 #include "Shader.h"
 #include "OctreeNode.h"
+#include "config.h"
+
+#ifdef BUILD_TESTING
+#include "MyTimer.h"
+#endif
 
 #define M_PI	3.14159265359
 #define G		6.672e-11F
@@ -98,5 +103,11 @@ public:
 	void getBounds(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
 
 	Particle getParticle(int index){ return ParticlesContainer[index]; }
+
+#ifdef BUILD_TESTING
+	double runTest(int no_tests);
+#endif
+
+
 
 };

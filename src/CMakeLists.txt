@@ -74,6 +74,7 @@ option(BUILD_TESTING "Builds and enables testing" OFF)
 
 if(BUILD_TESTING)
 	message(WARNING "Building for tests")
+	file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/CSV)
 endif(BUILD_TESTING)
 
 if(BUILD_ALL)

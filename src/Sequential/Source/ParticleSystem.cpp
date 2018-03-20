@@ -431,3 +431,26 @@ void ParticleSystem::updatePositions(float dt){
 	}
 }
 
+
+#ifdef BUILD_TESTING
+double ParticleSystem::runTest(int no_tests){
+
+	double time_sum = 0.0f;
+	float dt = 0.1f;
+
+	for (int i = 0; i < no_tests; i++){
+		
+		buildTree();
+		calcTreeCOM(root);
+
+		auto t0 = MyTimer::getTime();
+		BarnesHutUpdateForces(dt);
+		updatePositions(dt);
+		auto t1 = MyTimer::getTime();
+
+		time_sum += MyTimer::getDeltaTimeMS(t0, t1);
+
+	}
+	return (double) time_sum / no_tests;
+}
+#endif
