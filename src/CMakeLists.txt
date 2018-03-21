@@ -73,7 +73,7 @@ option(BUILD_SKEPU "Builds SkePU implemenation" OFF)
 option(BUILD_TESTING "Builds and enables testing" OFF)
 
 if(BUILD_TESTING)
-	message(WARNING "Building for tests")
+	message(AUTHOR_WARNING  "Building for tests")
 	file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/CSV)
 endif(BUILD_TESTING)
 
