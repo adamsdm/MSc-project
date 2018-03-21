@@ -440,10 +440,11 @@ double ParticleSystem::runTest(int no_tests){
 
 	for (int i = 0; i < no_tests; i++){
 		
+		auto t0 = MyTimer::getTime();
+
 		buildTree();
 		calcTreeCOM(root);
 
-		auto t0 = MyTimer::getTime();
 		BarnesHutUpdateForces(dt);
 		updatePositions(dt);
 		auto t1 = MyTimer::getTime();
