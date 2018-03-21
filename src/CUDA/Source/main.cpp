@@ -56,10 +56,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main() {
 
-#ifdef BUILD_TESTING
-	std::cout << "Testing CUDA..." << std::endl;
-	return 0;
-#endif
+
 
 	// Create a window
 	GLFWwindow* window = App::initialize(W, H);
@@ -68,6 +65,33 @@ int main() {
 		return -1;
 	}
 
+#ifdef BUILD_TESTING
+
+	std::ofstream outfile;
+	outfile.open("../CSV/CUDA.csv");
+
+	const int NO_TESTS = 10;
+
+	std::cout << "Testing CUDA..." << std::endl << std::endl;
+	outfile << "Count, CUDA" << std::endl;
+	for (int i = 1; i <= NO_TESTS; i++){
+
+		int NO_BODIES = i * 1024;
+		ParticleSystem *tPs = new ParticleSystem(NO_BODIES);
+
+		double time = tPs->runTest(100);
+
+		std::cout << ((float)i / NO_TESTS) * 100.0f << '%' << std::endl;
+		outfile << NO_BODIES << ',' << time << std::endl;
+
+		delete tPs;
+	}
+
+	std::cout << "...done!" << std::endl;
+	outfile.close();
+
+	return 0;
+#endif
 	
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

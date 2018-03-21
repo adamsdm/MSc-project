@@ -24,8 +24,11 @@ set(GLFW_DIR    "${EXT_DIR}/glfw")
 set(GLAD_DIR    "${EXT_DIR}/glad")
 
 
+# setup CMake config file
+configure_file(${COMMON_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
+
 file(GLOB PROJECT_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl)
-file(GLOB COMMON_SOURCES	${COMMON_DIR}/*.h ${COMMON_DIR}/*.cpp)
+file(GLOB COMMON_SOURCES	${COMMON_DIR}/*.h ${COMMON_DIR}/*.cpp ${CMAKE_BINARY_DIR}/config.h)
 
 # Microsoft Visual C++
 if(MSVC)
@@ -38,8 +41,7 @@ else()
 endif()
 
 
-# setup CMake config file
-configure_file(${COMMON_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
+
 
 
 include_directories(${GLFW_DIR}/include

@@ -16,6 +16,7 @@
 #include "Cell.h"
 #include "Cudacode.cuh"
 #include "MyTimer.h"
+#include "config.h"
 
 
 #define M_PI	3.14159265359
@@ -111,5 +112,9 @@ public:
 	void getBounds(float &minx, float &maxx, float &miny, float &maxy, float &minz, float &maxz);
 
 	Particle getParticle(int index){ return ParticlesContainer[index]; }
+
+#ifdef BUILD_TESTING
+	double runTest(int no_tests);
+#endif
 
 };

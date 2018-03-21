@@ -122,7 +122,7 @@ void ParticleSystem::initParticleSystem(){
 
 		
 		/* DEBUG PLACEMENT */
-		/*
+		
 		// Place particles in a single ring, easier to see if force calculation looks correct
 		r = 100.0f + (float) rand() / RAND_MAX * 0.01 * MAX_DISTANCE;
 
@@ -137,7 +137,7 @@ void ParticleSystem::initParticleSystem(){
 		p.vx = 0.0f;
 		p.vy = 0.0f;
 		p.vz = 0.0f;
-		*/
+		
 
 
 		ParticlesContainer[i] = p;
@@ -482,3 +482,27 @@ void ParticleSystem::updatePositions(float dt){
 	}
 }
 
+#ifdef BUILD_TESTING
+double ParticleSystem::runTest(int no_tests){
+
+
+	double time_sum = 0.0f;
+	float dt = 0.1f;
+
+	for (int i = 0; i < no_tests; i++){
+
+		auto t0 = MyTimer::getTime();
+		buildTree();
+		calcTreeCOM(root);
+		int count = 0;
+		flattenTree(root, count);
+
+		cuSim.CUDAStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
+		auto t1 = MyTimer::getTime();
+
+		time_sum += MyTimer::getDeltaTimeMS(t0, t1);
+
+	}
+	return (double)time_sum / no_tests;
+}
+#endif

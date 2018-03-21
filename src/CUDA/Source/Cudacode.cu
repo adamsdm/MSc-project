@@ -353,4 +353,10 @@ void CudaSim::CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloa
 	// Retrieve result
 	gpuErrchk((cudaMemcpy(p_container, d_particle_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyDeviceToHost)));
 	gpuErrchk(cudaMemcpy(g_particule_position_size_data, d_positions, MAX_PARTICLES * 3 * sizeof(GLfloat), cudaMemcpyDeviceToHost));
+
+	// Free buffers
+	//gpuErrchk
+	gpuErrchk(cudaFree(d_particle_container));
+	gpuErrchk(cudaFree(d_node_container));
+	gpuErrchk(cudaFree(d_positions));
 }
