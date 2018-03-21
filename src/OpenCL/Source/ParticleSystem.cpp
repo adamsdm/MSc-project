@@ -377,13 +377,6 @@ void ParticleSystem::render(float dt){
 	int count = 0;
 	flattenTree(root, count);
 
-	//OpenCLStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
-	//CUDACalcForces(ParticlesContainer, nodeContainer, count, MAX_PARTICLES, dt);
-	//CUDAUpdatePositions(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
-	
-	//clSim.updFor(ParticlesContainer, sNodeContainer, count, MAX_PARTICLES, dt);
-	//clSim.updPos(ParticlesContainer, g_particule_position_size_data, MAX_PARTICLES, dt);
-
 	clSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
 	
 
@@ -527,3 +520,26 @@ void ParticleSystem::updatePositions(float dt){
 	}
 }
 
+#ifdef BUILD_TESTING
+double ParticleSystem::runTest(int no_tests){
+
+	double time_sum = 0.0f;
+	float dt = 0.1f;
+
+	for (int i = 0; i < no_tests; i++){
+
+		auto t0 = MyTimer::getTime();
+		buildTree();
+		calcTreeCOM(root);
+		int count = 0;
+		flattenTree(root, count);
+
+		clSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
+		auto t1 = MyTimer::getTime();
+
+		time_sum += MyTimer::getDeltaTimeMS(t0, t1);
+
+	}
+	return (double) time_sum / no_tests;
+}
+#endif

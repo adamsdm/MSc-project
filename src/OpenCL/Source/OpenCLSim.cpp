@@ -96,6 +96,7 @@ OpenCLSim::OpenCLSim() {
 	}
 	// Set default as the first platform found
 	default_platform = platforms[0]; 
+
 	// Print info
 	std::cout << "----- PLATFORM -----" << std::endl
 		<< default_platform.getInfo<CL_PLATFORM_VENDOR>() << std::endl

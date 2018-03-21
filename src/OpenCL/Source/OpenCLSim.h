@@ -10,6 +10,7 @@
 #include "Particle.h"
 #include "OctreeNode.h"
 #include "sOctreeNode.h"
+#include "config.h"
 
 class OpenCLSim {
 public:

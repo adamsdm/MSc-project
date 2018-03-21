@@ -17,6 +17,7 @@
 #include "Cell.h"
 #include "MyTimer.h"
 #include "OpenCLSim.h"
+#include "config.h"
 
 
 
@@ -116,4 +117,7 @@ public:
 
 	Particle getParticle(int index){ return ParticlesContainer[index]; }
 
+#ifdef BUILD_TESTING
+	double runTest(int no_tests);
+#endif BUILD_TESTING
 };
