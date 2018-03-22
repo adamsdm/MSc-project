@@ -2,3 +2,6 @@
 // Defines are set by the CMake configuration
 
 #cmakedefine BUILD_TESTING
+
+/* Not set by CMake */
+#define USE_CUDA_STRUCTURED_BUFFER
