@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 #define DEBUG_PLACEMENT
-#define NO_PARTICLES	10*1024
 
 
 #define STB_IMAGE_IMPLEMENTATION

@@ -6,3 +6,5 @@
 /* Not set by CMake */
 #define USE_CUDA_STRUCTURED_BUFFER
 #define TEST_ONLY_GPU_TIME
+#define NO_TESTS 20
+#define NO_PARTICLES 20*1024

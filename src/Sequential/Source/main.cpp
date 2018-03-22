@@ -12,7 +12,6 @@
 
 
 #define DEBUG_PLACEMENT
-#define NO_PARTICLES	2*1024
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
