@@ -8,6 +8,8 @@
 
 class OctreeNode {
 public:
+
+	// Pointers the this nodes children
 	OctreeNode* children[8];
 
 	// Index of this node used when flattening the tree
@@ -27,28 +29,61 @@ public:
 	float mid_y;
 	float mid_z;
 
-
+	// Mass and center of mass
 	float m;
 	float com_x;
 	float com_y;
 	float com_z;
 
 	OctreeNode(){ ; };
+
+	/**
+	* OctreeNode constructor
+	* @param min_x		min x bound
+	* @param min_y		min y bound
+	* @param min_z		min z bound
+	* @param max_x		min x bound
+	* @param max_y		min y bound
+	* @param max_z		min z bound
+	*/
 	OctreeNode(float min_x, float min_y, float min_z,
 		float max_x, float max_y, float max_z);
 
 	~OctreeNode();
 
+	/**
+	* Returns the number of elements contained in this node
+	* @return no_elements
+	*/
 	int getNoElements(){ return no_elements; }
 
+	/**
+	* Gets the child at position 'index'
+	* @return child of index 'index'
+	*/
 	OctreeNode *getChild(int index){ return children[index]; }
 
-	// Recursively steps through the tree and sets model matrix for each node
-	// Should only be used from ParticleSystem.cpp
+	/**
+	* Recursively steps through the tree and sets model matrix for each node
+	* @param boxShader	shader instance in which the particle should be rendered
+	*/
 	void setModelAndRender(Shader boxShader);
 
-	// Inserts a node into this octree
+	/**
+	* Inserts a node into this octree
+	* @param x		x-pos of node
+	* @param y		y-pos of node
+	* @param z		z-pos of node
+	* @param mass	mass of node
+	* @param com_x	center of mass in x-axis
+	* @param com_y	center of mass in x-axis
+	* @param com_z	center of mass in x-axis
+	*/
 	int insert(float x, float y, float z, float mass, float com_x, float com_y, float com_z);
+
+	/**
+	* Recursively steps through the tree and deallocates it
+	*/
 	void freeTree();
 
 

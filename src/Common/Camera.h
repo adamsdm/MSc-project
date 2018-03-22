@@ -6,6 +6,7 @@
 
 #include <vector>
 
+
 enum Camera_Movement {
 	FORWARD,
 	BACKWARD,
@@ -38,21 +39,50 @@ public:
 	float MouseSensitivity;
 	float Zoom;
 
-	// Constructor with vectors
+	/**
+	* Constructur with vectors
+	* @param position	initial camera position
+	* @param up			World up axis unit vector
+	* @param yaw		Camera yaw
+	* @param pitch		Camera pitch
+	*/
 	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
-	// Constructor with scalar values
+
+	/**
+	* Constructur with scalars
+	* @param position	initial camera position
+	* @param up			World up axis unit vector
+	* @param yaw		Camera yaw
+	* @param pitch		Camera pitch
+	*/
 	Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
 	
-	// Returns the view matrix calculated using Eular Angles and the LookAt Matrix
+	/**
+	* Returns view matrix
+	* @return <glm::mat4> View matrix
+	*/
 	glm::mat4 GetViewMatrix();
 
-	// Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
+	/**
+	* Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
+	* @param direction		Camera_Movement enum giving the direction
+	* @param deltaTime	
+	*/
 	void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
-	// Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+	
+	/**
+	* Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+	* @param xoffset		delta x
+	* @param yoffset		delta y
+	* @param constrainPitch
+	*/
 	void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
 
-	// Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
+	/**
+	* Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
+	* @param yoffset		delta y
+	*/
 	void ProcessMouseScroll(float yoffset);
 
 private:

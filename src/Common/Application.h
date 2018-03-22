@@ -11,6 +11,12 @@
 #include <sstream>
 
 namespace App {
+
+	/**
+	* Initializes GLFW and returns a GLFWwindow object
+	* @param W	window width
+	* @param H	window height
+	*/
 	GLFWwindow* initialize(const unsigned int W, const unsigned int H) {
 
 		// Initialize GLFW
