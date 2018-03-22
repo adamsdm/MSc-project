@@ -67,8 +67,6 @@ int main() {
 	std::ofstream outfile;
 	outfile.open("../CSV/DirectCompute.csv");
 
-	const int NO_TESTS = 10;
-
 	std::cout << "Testing DirectCompute..." << std::endl << std::endl;
 	outfile << "Count, DirectCompute" << std::endl;
 	for (int i = 1; i <= NO_TESTS; i++){

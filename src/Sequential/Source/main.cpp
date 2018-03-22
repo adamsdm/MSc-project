@@ -73,8 +73,6 @@ int main() {
 	std::ofstream outfile;
 	outfile.open("../CSV/Sequential.csv");
 
-	const int NO_TESTS = 10;
-
 	std::cout << "Testing sequential..." << std::endl << std::endl;
 	outfile << "Count, Sequential" << std::endl;
 	for (int i = 1; i <= NO_TESTS; i++){

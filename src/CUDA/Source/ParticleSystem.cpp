@@ -553,6 +553,10 @@ double ParticleSystem::runTest(int no_tests){
 		int count = 0;
 		flattenTree(root, count);
 
+#ifdef TEST_ONLY_GPU_TIME
+		t0 = MyTimer::getTime();
+#endif
+
 		cuSim.CUDAStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
 		auto t1 = MyTimer::getTime();
 

@@ -69,8 +69,6 @@ int main() {
 	std::ofstream outfile;
 	outfile.open("../CSV/OpenCL.csv");
 
-	const int NO_TESTS = 10;
-
 	std::cout << "Testing sequential..." << std::endl << std::endl;
 	outfile << "Count, OpenCL" << std::endl;
 	for (int i = 1; i <= NO_TESTS; i++){

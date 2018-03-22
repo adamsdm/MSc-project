@@ -533,7 +533,9 @@ double ParticleSystem::runTest(int no_tests){
 		calcTreeCOM(root);
 		int count = 0;
 		flattenTree(root, count);
-
+#ifdef TEST_ONLY_GPU_TIME
+		t0 = MyTimer::getTime();
+#endif
 		clSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
 		auto t1 = MyTimer::getTime();
 

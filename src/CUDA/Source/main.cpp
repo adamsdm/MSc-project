@@ -70,8 +70,6 @@ int main() {
 	std::ofstream outfile;
 	outfile.open("../CSV/CUDA.csv");
 
-	const int NO_TESTS = 10;
-
 	std::cout << "Testing CUDA..." << std::endl << std::endl;
 	outfile << "Count, CUDA" << std::endl;
 	for (int i = 1; i <= NO_TESTS; i++){
