@@ -13,6 +13,9 @@ ParticleSystem::ParticleSystem(const unsigned int const _MAX_PARTICLES) {
 	g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
 
 	nodeContainer = new OctreeNode[4 * MAX_PARTICLES];
+#ifdef USE_CUDA_STRUCTURED_BUFFER
+	sNodeContainer = new sOctreeNode[4 * MAX_PARTICLES];
+#endif
 
 
 	// Create share
@@ -271,7 +274,6 @@ void ParticleSystem::calcTreeCOM(OctreeNode *node){
 
 void ParticleSystem::buildTree(){
 
-	
 	std::chrono::high_resolution_clock::time_point t0, t1, t2, t3;
 
 
@@ -317,6 +319,54 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 		}
 	}
 
+#ifdef USE_CUDA_STRUCTURED_BUFFER
+	// This might be more efficient parallelized
+	for (int j = 0; j < count; j++){
+		// Create a struct based octreenode from node
+
+		sOctreeNode sNode = sNodeContainer[j];
+
+
+		// Copy data into structed octreenode
+		sNode.index = nodeContainer[j].index;
+
+		sNode.min_x = nodeContainer[j].min_x;
+		sNode.min_y = nodeContainer[j].min_y;
+		sNode.min_z = nodeContainer[j].min_z;
+
+		sNode.max_x = nodeContainer[j].max_x;
+		sNode.max_y = nodeContainer[j].max_y;
+		sNode.max_z = nodeContainer[j].max_z;
+
+		sNode.mid_x = nodeContainer[j].mid_x;
+		sNode.mid_y = nodeContainer[j].mid_y;
+		sNode.mid_z = nodeContainer[j].mid_z;
+
+		sNode.m = nodeContainer[j].m;
+
+		sNode.com_x = nodeContainer[j].com_x;
+		sNode.com_y = nodeContainer[j].com_y;
+		sNode.com_z = nodeContainer[j].com_z;
+
+
+
+		for (int i = 0; i < 8; i++){
+
+			if (nodeContainer[j].children[i]){
+				int index = nodeContainer[j].children[i]->index;
+				nodeContainer[j].childIndices[i] = index;
+				sNode.childIndices[i] = index;
+				nodeContainer[j].childIndices[i] = nodeContainer[j].children[i]->index;
+			}
+			else {
+				nodeContainer[j].childIndices[i] = NULL;
+				sNode.childIndices[i] = NULL;
+			}
+		}
+
+		sNodeContainer[j] = sNode;
+	}
+#else 
 	// This might be more efficient parallelized
 	for (int j = 0; j < count; j++){
 		for (int i = 0; i < 8; i++){
@@ -329,7 +379,9 @@ void ParticleSystem::flattenTree(OctreeNode *node, int &count){
 			}
 		}
 	}
+#endif
 }
+
 
 void ParticleSystem::render(float dt){
 	
@@ -339,7 +391,11 @@ void ParticleSystem::render(float dt){
 	int count = 0;	
 	flattenTree(root, count);
 
+#ifdef USE_CUDA_STRUCTURED_BUFFER
+	cuSim.CUDAStep(ParticlesContainer, sNodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
+#else
 	cuSim.CUDAStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
+#endif
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);

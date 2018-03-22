@@ -1,3 +1,7 @@
+#define M_PI	3.14159265359
+#define G		6.672e-11F
+#define SOFTENING 1e-9f
+
 #pragma once
 #include <stdio.h>
 #include <glad/glad.h>
@@ -18,10 +22,12 @@
 #include "MyTimer.h"
 #include "config.h"
 
+#ifdef USE_CUDA_STRUCTURED_BUFFER
+#include "sOctreeNode.h"
+#endif
 
-#define M_PI	3.14159265359
-#define G		6.672e-11F
-#define SOFTENING 1e-9f
+
+
 
 class ParticleSystem  {
 private:
@@ -44,6 +50,10 @@ private:
 	// Data
 	Particle *ParticlesContainer;
 	OctreeNode* nodeContainer;
+#ifdef USE_CUDA_STRUCTURED_BUFFER
+	sOctreeNode *sNodeContainer;
+#endif
+
 
 	Shader *particleShader;
 	OctreeNode *root;

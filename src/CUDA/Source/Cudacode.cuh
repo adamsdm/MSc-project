@@ -10,7 +10,9 @@
 #include "Particle.h"
 #include "Cell.h"
 #include "OctreeNode.h"
+#include "sOctreeNode.h"
 #include "MyTimer.h"
+#include "config.h"
 
 class CudaSim {
 public:
@@ -46,6 +48,8 @@ public:
 	* @param dt	the stepsize, delta time
 	*/
 	void CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt);
+	void CUDAStep(Particle *p_container, sOctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt);
+
 
 private:
 	/**

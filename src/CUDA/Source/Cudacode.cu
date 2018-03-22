@@ -28,7 +28,14 @@ CudaSim::CudaSim(){
 	std::cout << "Global memory:   " << props.totalGlobalMem / mb << "mb" << std::endl;
 	std::cout << "Max block dimensions: [ " << props.maxThreadsDim[0] << ", " << props.maxThreadsDim[1] << ", " << props.maxThreadsDim[2] << " ]" << std::endl;
 	std::cout << "Max grid dimensions:  [ " << props.maxGridSize[0] << ", " << props.maxGridSize[1] << ", " << props.maxGridSize[2] << " ]" << std::endl;
+#ifdef USE_CUDA_STRUCTURED_BUFFER
+	std::cout << " - Using structured node buffer" << std::endl;
+#else 
+	std::cout << " - NOT Using structured node buffer" << std::endl;
+#endif
 	std::cout << "---------------------------------" << std::endl;
+
+
 
 }
 
@@ -319,6 +326,8 @@ void CUDACalcForces(Particle *ParticlesContainer,
 	gpuErrchk(cudaFree(d_particle_container));
 }
 
+
+// Class object buffer
 void CudaSim::CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt) {
 
 
@@ -359,4 +368,110 @@ void CudaSim::CUDAStep(Particle *p_container, OctreeNode nodeContainer[], GLfloa
 	gpuErrchk(cudaFree(d_particle_container));
 	gpuErrchk(cudaFree(d_node_container));
 	gpuErrchk(cudaFree(d_positions));
+}
+
+
+__global__ void STRUCTupdateForceKernel(Particle *ParticlesContainer, sOctreeNode *nodeContainer, int MAX_PARTICLES, float dt){
+
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+
+	if (idx < MAX_PARTICLES){
+		Particle *p = &ParticlesContainer[idx];
+
+
+		MyQueue q;
+
+		// start by pushing the root, nodeContainer[0].index = 0
+		q.push(nodeContainer[0].index);
+
+		while (!q.empty()) {
+
+			sOctreeNode *node = &nodeContainer[q.front()];
+			q.pop();
+
+			float dx = node->com_x - p->px;
+			float dy = node->com_y - p->py;
+			float dz = node->com_z - p->pz;
+
+			float dist = sqrt(dx*dx + dy*dy + dz*dz);
+
+			if (dist == 0) return;
+
+
+			float width = ((node->max_x - node->min_x) +
+				(node->max_y - node->min_y) +
+				(node->max_z - node->min_z)) / 3;
+
+			// The node is far away enough to be evaluated as a single node
+			if (width / dist < 0.5) {
+
+				float F = (G * p->weight * node->m) / (dist + 1.0f + SOFTENING * SOFTENING);
+
+				p->vx += F * dx / dist;
+				p->vy += F * dy / dist;
+				p->vz += F * dz / dist;
+			}
+
+
+
+			// The node is to close to be treated as a single particle and must be further traversed
+			else {
+				if (node->childIndices[0]) q.push(node->childIndices[0]);
+				if (node->childIndices[1]) q.push(node->childIndices[1]);
+				if (node->childIndices[2]) q.push(node->childIndices[2]);
+				if (node->childIndices[3]) q.push(node->childIndices[3]);
+				if (node->childIndices[4]) q.push(node->childIndices[4]);
+				if (node->childIndices[5]) q.push(node->childIndices[5]);
+				if (node->childIndices[6]) q.push(node->childIndices[6]);
+				if (node->childIndices[7]) q.push(node->childIndices[7]);
+			}
+		}
+
+	}
+}
+// Struct object buffer
+void CudaSim::CUDAStep(Particle *p_container, sOctreeNode nodeContainer[], GLfloat *g_particule_position_size_data, unsigned int MAX_PARTICLES, int count, float dt){
+
+	Particle *d_particle_container;
+	sOctreeNode *d_node_container;
+	GLfloat *d_positions;
+
+	// Container containing particles
+	gpuErrchk(cudaMalloc((void**)&d_particle_container, MAX_PARTICLES * sizeof(Particle)));
+	gpuErrchk(cudaMemcpy(d_particle_container, p_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyHostToDevice));
+
+	// Flattened tree container
+	gpuErrchk(cudaMalloc((void**)&d_node_container, count * sizeof(sOctreeNode)));
+	gpuErrchk(cudaMemcpy(d_node_container, nodeContainer, count * sizeof(sOctreeNode), cudaMemcpyHostToDevice));
+
+	// Vertex buffer
+	gpuErrchk(cudaMalloc((void**)&d_positions, MAX_PARTICLES * 3 * sizeof(GLfloat)));
+	gpuErrchk(cudaMemcpy(d_positions, g_particule_position_size_data, MAX_PARTICLES * 3 * sizeof(GLfloat), cudaMemcpyHostToDevice));
+
+
+
+
+	// Launch kernel
+	float simspeed = 0.01;
+	dim3 dimGrid(MAX_PARTICLES / 1024);
+	dim3 dimBlock(1024);
+
+	STRUCTupdateForceKernel << <dimGrid, dimBlock >> > (d_particle_container, d_node_container, MAX_PARTICLES, dt);
+	cudaThreadSynchronize();
+	updatePositionKernel << < dimGrid, dimBlock >> >(d_positions, d_particle_container, MAX_PARTICLES, dt, simspeed);
+	cudaThreadSynchronize();
+
+
+	// Retrieve result
+	gpuErrchk((cudaMemcpy(p_container, d_particle_container, MAX_PARTICLES * sizeof(Particle), cudaMemcpyDeviceToHost)));
+	gpuErrchk(cudaMemcpy(g_particule_position_size_data, d_positions, MAX_PARTICLES * 3 * sizeof(GLfloat), cudaMemcpyDeviceToHost));
+
+
+
+
+	gpuErrchk(cudaFree(d_particle_container));
+	gpuErrchk(cudaFree(d_node_container));
+	gpuErrchk(cudaFree(d_positions));
+
 }
