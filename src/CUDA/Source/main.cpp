@@ -76,14 +76,6 @@ int main() {
 
 	std::string filename = "cu";
 
-#ifdef TEST_ONLY_GPU_TIME
-	filename += "-ONLY-GPU";
-#endif // TEST_ONLY_GPU_TIME
-
-#ifndef USE_CUDA_STRUCTURED_BUFFER
-	filename += "-CLASS-BUFFER"
-#endif //USE_CUDA_STRUCTURED_BUFFER
-
 	std::ofstream outfile;
 	outfile.open("../CSV/" + filename + ".csv", std::ios::app);
 
@@ -92,12 +84,6 @@ int main() {
 
 	test_times res;
 	tPs->runTest(100, res);
-
-	double tBuildTree;
-	double tCalcTreeCOM;
-	double tFlattenTree;
-	double tStep;
-	double tTot;
 
 	// tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot
 	std::cout << "tBuildTree, " << "tCalcTreeCOM, " << "tFlattenTree, " << "tStep, " << "tTot" << std::endl;

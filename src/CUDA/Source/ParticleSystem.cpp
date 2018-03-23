@@ -563,7 +563,12 @@ void ParticleSystem::runTest(int no_tests, test_times &res){
 		flattenTree(root, count);
 		
 		auto t3 = MyTimer::getTime();
+
+#ifdef USE_CUDA_STRUCTURED_BUFFER
+		cuSim.CUDAStep(ParticlesContainer, sNodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
+#else
 		cuSim.CUDAStep(ParticlesContainer, nodeContainer, g_particule_position_size_data, MAX_PARTICLES, count, dt);
+#endif
 		auto t4 = MyTimer::getTime();
 
 		// Sum test times
@@ -573,7 +578,7 @@ void ParticleSystem::runTest(int no_tests, test_times &res){
 		tStepSum += MyTimer::getDeltaTimeMS(t3, t4);
 		tTotSum += MyTimer::getDeltaTimeMS(t0, t4);
 
-		root->freeTree();
+		//root->freeTree();
 	}
 
 	res.tBuildTree = (double)tBuildTreeSum / no_tests;
