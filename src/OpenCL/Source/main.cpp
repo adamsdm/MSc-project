@@ -65,29 +65,32 @@ int main() {
 
 #ifdef BUILD_TESTING
 
+
+	std::string filename = "cl";
+
+#ifdef TEST_ONLY_GPU_TIME
+	filename += "-ONLY-GPU";
+#endif // TEST_ONLY_GPU_TIME
+
 	std::ofstream outfile;
-	outfile.open("../CSV/OpenCL.csv");
+	outfile.open("../CSV/" + filename + ".csv", std::ios::app);
 
-	std::cout << "Testing sequential..." << std::endl << std::endl;
-	outfile << "Count, OpenCL" << std::endl;
-	for (int i = 1; i <= NO_TESTS; i++){
+	int NO_BODIES = 2 * 1024;
+	ParticleSystem *tPs = new ParticleSystem(NO_BODIES);
 
-		int NO_BODIES = i * 1024;
-		ParticleSystem *tPs = new ParticleSystem(NO_BODIES);
 
-		double time = tPs->runTest(100);
+	double exec_time = tPs->runTest(100);
 
-		std::cout << ((float)i / NO_TESTS) * 100.0f << '%' << std::endl;
-		outfile << NO_BODIES << ',' << time << std::endl;
+	std::cout << NO_BODIES << ',' << exec_time << std::endl;
+	outfile << NO_BODIES << ',' << exec_time << std::endl;
 
-		delete tPs;
-	}
+	delete tPs;
 
 	std::cout << "...done!" << std::endl;
 	outfile.close();
 
 	return 0;
-#endif
+#endif //BUILD_TESTING
 
 	
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
