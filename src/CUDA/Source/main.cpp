@@ -84,9 +84,9 @@ int main() {
 	test_times res;
 	tPs->runTest(100, res);
 
-	// tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot
-	std::cout << "tBuildTree, " << "tCalcTreeCOM, " << "tFlattenTree, " << "tStep, " << "tTot" << std::endl;
-	outfile << NO_BODIES << ',' << res.tBuildTree << ',' << res.tCalcTreeCOM << ',' << res.tFlattenTree << ',' << res.tStep << ',' << res.tTot << std::endl;
+	// No. Bodies, tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot
+	std::cout << "NO_BODIES, tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot" << std::endl;
+	outfile << NO_BODIES << ',' << res.tBuildTree << ',' << res.tCalcTreeCOM << ',' << 0.0f << ',' << res.tStep << ',' << res.tTot << std::endl;
 
 	delete tPs;
 
