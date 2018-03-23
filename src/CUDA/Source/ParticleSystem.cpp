@@ -578,7 +578,7 @@ void ParticleSystem::runTest(int no_tests, test_times &res){
 		tStepSum += MyTimer::getDeltaTimeMS(t3, t4);
 		tTotSum += MyTimer::getDeltaTimeMS(t0, t4);
 
-		//root->freeTree();
+		root->freeTree();
 	}
 
 	res.tBuildTree = (double)tBuildTreeSum / no_tests;

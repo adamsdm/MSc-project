@@ -20,6 +20,9 @@
 #include "config.h"
 
 
+#ifdef BUILD_TESTING
+#include "PerfTest.h"
+#endif // BUILD_TESTING
 
 #define M_PI	3.14159265359
 #define G		6.672e-11F
@@ -118,7 +121,7 @@ public:
 	Particle getParticle(int index){ return ParticlesContainer[index]; }
 
 #ifdef BUILD_TESTING
-	double runTest(int no_tests);
+	void runTest(int no_tests, test_times &res);
 #endif
 
 };
