@@ -26,6 +26,10 @@
 #include "sOctreeNode.h"
 #endif
 
+#ifdef BUILD_TESTING
+#include "PerfTest.h"
+#endif
+
 
 
 
@@ -124,7 +128,7 @@ public:
 	Particle getParticle(int index){ return ParticlesContainer[index]; }
 
 #ifdef BUILD_TESTING
-	double runTest(int no_tests);
+	void runTest(int no_tests, test_times &res);
 #endif
 
 };

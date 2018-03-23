@@ -23,6 +23,10 @@
 #include "OctreeNode.h"
 #include "config.h"
 
+#ifdef BUILD_TESTING
+#include "PerfTest.h"
+#endif // BUILD_TESTING
+
 
 // Global application state
 
@@ -52,7 +56,6 @@ float deltaTime = 0.0f;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-
 
 int main() {
 
@@ -84,14 +87,21 @@ int main() {
 	std::ofstream outfile;
 	outfile.open("../CSV/" + filename + ".csv", std::ios::app);
 
-	int NO_BODIES = 2 * 1024;
+	int NO_BODIES = 10 * 1024;
 	ParticleSystem *tPs = new ParticleSystem(NO_BODIES);
 
+	test_times res;
+	tPs->runTest(100, res);
 
-	double exec_time = tPs->runTest(100);
+	double tBuildTree;
+	double tCalcTreeCOM;
+	double tFlattenTree;
+	double tStep;
+	double tTot;
 
-	std::cout << NO_BODIES << ',' << exec_time << std::endl;
-	outfile << NO_BODIES << ',' << exec_time << std::endl;
+	// tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot
+	std::cout << "tBuildTree, " << "tCalcTreeCOM, " << "tFlattenTree, " << "tStep, " << "tTot" << std::endl;
+	outfile << NO_BODIES << ',' << res.tBuildTree << ',' << res.tCalcTreeCOM << ',' << res.tFlattenTree << ',' << res.tStep << ',' << res.tTot << std::endl;
 
 	delete tPs;
 
