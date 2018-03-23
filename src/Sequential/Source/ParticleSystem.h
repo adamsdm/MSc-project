@@ -15,6 +15,7 @@
 
 #ifdef BUILD_TESTING
 #include "MyTimer.h"
+#include "PerfTest.h"
 #endif
 
 #define M_PI	3.14159265359
@@ -105,7 +106,7 @@ public:
 	Particle getParticle(int index){ return ParticlesContainer[index]; }
 
 #ifdef BUILD_TESTING
-	double runTest(int no_tests);
+	void runTest(int no_tests, test_times &res);
 #endif
 
 
