@@ -48,6 +48,11 @@ ParticleSystem::ParticleSystem(const unsigned int const _MAX_PARTICLES) {
 
 }
 
+ParticleSystem::~ParticleSystem(){
+	delete[] g_particule_position_size_data;
+	delete[] ParticlesContainer;
+}
+
 void ParticleSystem::renderCOM(OctreeNode *node, Shader comShader){
 
 	GLfloat triangle_vertices[] = {
@@ -150,11 +155,6 @@ void ParticleSystem::initParticleSystem(){
 		g_particule_position_size_data[i * 3 + 1] = p.py;
 		g_particule_position_size_data[i * 3 + 2] = p.pz;
 	}
-}
-
-ParticleSystem::~ParticleSystem(){
-	delete[] g_particule_position_size_data;
-	delete[] ParticlesContainer;
 }
 
 void ParticleSystem::getBounds(float &_minx, float &_maxx, float &_miny, float &_maxy, float &_minz, float &_maxz){
