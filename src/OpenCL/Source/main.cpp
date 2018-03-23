@@ -13,6 +13,7 @@
 #define DEBUG_PLACEMENT
 
 
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "Shader.h"
@@ -22,6 +23,9 @@
 #include "OctreeNode.h"
 #include "config.h"
 
+#ifdef BUILD_TESTING
+#include "PerfTest.h"
+#endif // BUILD_TESTING
 
 // Global application state
 
@@ -68,21 +72,18 @@ int main() {
 
 	std::string filename = "cl";
 
-#ifdef TEST_ONLY_GPU_TIME
-	filename += "-ONLY-GPU";
-#endif // TEST_ONLY_GPU_TIME
-
 	std::ofstream outfile;
 	outfile.open("../CSV/" + filename + ".csv", std::ios::app);
 
-	int NO_BODIES = 2 * 1024;
+	int NO_BODIES = 10 * 1024;
 	ParticleSystem *tPs = new ParticleSystem(NO_BODIES);
 
+	test_times res;
+	tPs->runTest(100, res);
 
-	double exec_time = tPs->runTest(100);
-
-	std::cout << NO_BODIES << ',' << exec_time << std::endl;
-	outfile << NO_BODIES << ',' << exec_time << std::endl;
+	// tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot
+	std::cout << "tBuildTree, " << "tCalcTreeCOM, " << "tFlattenTree, " << "tStep, " << "tTot" << std::endl;
+	outfile << NO_BODIES << ',' << res.tBuildTree << ',' << res.tCalcTreeCOM << ',' << res.tFlattenTree << ',' << res.tStep << ',' << res.tTot << std::endl;
 
 	delete tPs;
 

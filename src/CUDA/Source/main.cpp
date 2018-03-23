@@ -27,7 +27,6 @@
 #include "PerfTest.h"
 #endif // BUILD_TESTING
 
-
 // Global application state
 
 bool render_bounds = false;

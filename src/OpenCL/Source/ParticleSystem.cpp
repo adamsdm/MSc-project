@@ -522,27 +522,49 @@ void ParticleSystem::updatePositions(float dt){
 }
 
 #ifdef BUILD_TESTING
-double ParticleSystem::runTest(int no_tests){
+void ParticleSystem::runTest(int no_tests, test_times &res) {
 
-	double time_sum = 0.0f;
+	
+	double tBuildTreeSum = 0.0f;
+	double tCalcTreeCOMSum = 0.0f;
+	double tFlattenTreeSum = 0.0f;
+	double tStepSum = 0.0f;
+	double tTotSum = 0.0f;
+
 	float dt = 0.1f;
 
 	for (int i = 0; i < no_tests; i++){
 
 		auto t0 = MyTimer::getTime();
 		buildTree();
+
+		auto t1 = MyTimer::getTime();
 		calcTreeCOM(root);
+
+		auto t2 = MyTimer::getTime();
 		int count = 0;
 		flattenTree(root, count);
-#ifdef TEST_ONLY_GPU_TIME
-		t0 = MyTimer::getTime();
-#endif
-		clSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
-		auto t1 = MyTimer::getTime();
 
-		time_sum += MyTimer::getDeltaTimeMS(t0, t1);
+		auto t3 = MyTimer::getTime();
+		clSim.step(ParticlesContainer, sNodeContainer, g_particule_position_size_data, count, MAX_PARTICLES, dt);
+
+		auto t4 = MyTimer::getTime();
+
+		// Sum test times
+		tBuildTreeSum += MyTimer::getDeltaTimeMS(t0, t1);
+		tCalcTreeCOMSum += MyTimer::getDeltaTimeMS(t1, t2);
+		tFlattenTreeSum += MyTimer::getDeltaTimeMS(t2, t3);
+		tStepSum += MyTimer::getDeltaTimeMS(t3, t4);
+		tTotSum += MyTimer::getDeltaTimeMS(t0, t4);
+
 		root->freeTree();
 	}
-	return (double) time_sum / no_tests;
+
+	res.tBuildTree = (double)tBuildTreeSum / no_tests;
+	res.tCalcTreeCOM = (double)tCalcTreeCOMSum / no_tests;
+	res.tFlattenTree = (double)tFlattenTreeSum / no_tests;
+	res.tStep = (double)tStepSum / no_tests;
+	res.tTot = (double)tTotSum / no_tests;
+
 }
 #endif

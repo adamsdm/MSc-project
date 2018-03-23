@@ -1,7 +1,3 @@
-#define M_PI	3.14159265359
-#define G		6.672e-11F
-#define SOFTENING 1e-9f
-
 #pragma once
 #include <stdio.h>
 #include <glad/glad.h>
@@ -30,7 +26,9 @@
 #include "PerfTest.h"
 #endif
 
-
+#define M_PI	3.14159265359
+#define G		6.672e-11F
+#define SOFTENING 1e-9f
 
 
 class ParticleSystem  {
