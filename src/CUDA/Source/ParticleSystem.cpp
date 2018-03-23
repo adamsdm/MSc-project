@@ -561,7 +561,7 @@ double ParticleSystem::runTest(int no_tests){
 		auto t1 = MyTimer::getTime();
 
 		time_sum += MyTimer::getDeltaTimeMS(t0, t1);
-
+		root->freeTree();
 	}
 	return (double)time_sum / no_tests;
 }
