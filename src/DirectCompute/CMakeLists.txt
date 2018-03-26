@@ -18,11 +18,11 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 
 # Update SRC_DIR variable to point to current source
 set(SRC_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/Source")
-set(KRL_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/CLKernels")
+set(KRL_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/CS")
 
 file(GLOB PROJECT_SOURCES   ${SRC_DIR}/*.cpp)
 file(GLOB PROJECT_HEADERS   ${SRC_DIR}/*.h)
-file(GLOB COMPUTE_SHADERS   ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.hlsl)
+file(GLOB COMPUTE_SHADERS   ${KRL_DIR}/*.hlsl)
 
 
 source_group("Sources" FILES ${PROJECT_SOURCES})
