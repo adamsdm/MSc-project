@@ -1,0 +1,82 @@
+#include <CL/cl.hpp>
+#include <iostream>
+#include <vector>
+
+const int N_elements = 1024;
+
+// Kernel source, is usually stored in a seperate .cl file
+std::string src = 
+"__kernel void vectorAddition("
+"	__global read_only int* vector1, \n"
+"	__global read_only int* vector2, \n"
+"	__global write_only int* vector3)\n"
+"{\n"
+"	int indx = get_global_id(0);\n"
+"	vector3[indx] = vector1[indx] + vector2[indx];\n"
+"}\n";
+
+int main()
+{
+
+	// Get list of available platforms
+	std::vector<cl::Platform> platforms;
+	cl::Platform::get(&platforms);
+
+	// Get list of devices
+	std::vector<cl::Device> devices;
+	platforms[0].getDevices(CL_DEVICE_TYPE_ALL, &devices);
+
+	// Create a context from the devices
+	cl::Context context(devices);
+
+	// Compile kernel
+	cl::Program program(context, cl::Program::Sources(1, std::make_pair(src.c_str(), src.length() + 1)));
+	cl_int err = program.build(devices, "-cl-std=CL1.2");
+
+	// Input data
+	int* vector1 = new int[N_elements];
+	int* vector2 = new int[N_elements];
+
+	for (size_t i = 0; i < N_elements; i++){
+		vector1[i] = i;
+		vector2[i] = 2 * i;
+	}
+
+	// Create buffers from input data
+	cl::Buffer vec1Buff(context, CL_MEM_READ_ONLY, sizeof(int) * N_elements, vector1);
+	cl::Buffer vec2Buff(context, CL_MEM_READ_ONLY, sizeof(int) * N_elements, vector2);
+
+	int* vector3 = new int[N_elements];
+	cl::Buffer vec3Buff(context, CL_MEM_WRITE_ONLY, sizeof(int) * N_elements, vector3);
+
+	// Pass arguments to the vector addition kerel
+	cl::Kernel kernel(program, "vectorAddition", &err);
+	kernel.setArg(0, vec1Buff);
+	kernel.setArg(1, vec2Buff);
+	kernel.setArg(2, vec3Buff);
+	
+	// Create command queue and copy data to the device
+	cl::CommandQueue queue(context, devices[0]);
+	queue.enqueueWriteBuffer(vec1Buff, CL_TRUE, 0, sizeof(int) * N_elements, vector1);
+	queue.enqueueWriteBuffer(vec2Buff, CL_TRUE, 0, sizeof(int) * N_elements, vector2);
+
+	// Launch kernel
+	queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(N_elements), cl::NDRange(1024));
+
+	// Read back result
+	queue.enqueueReadBuffer(vec3Buff, CL_TRUE, 0, sizeof(int) * N_elements, vector3);
+
+	// Assert that the result is correct
+	for (size_t i = 0; i < N_elements; i++){
+		if (vector1[i] + vector2[i] != vector3[i])
+			return 1;
+	}
+
+	std::cout << "Sucess!" << std::endl;
+
+	delete[] vector1;
+	delete[] vector2;
+	delete[] vector3;
+
+	return 0;
+}
