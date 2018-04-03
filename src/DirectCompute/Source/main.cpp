@@ -68,12 +68,12 @@ int main() {
 
 #ifdef BUILD_TESTING
 
-	std::string filename = "dc";
+	std::string filename = "dc-NEW_TESTS";
 
 	std::ofstream outfile;
 	outfile.open("../CSV/" + filename + ".csv", std::ios::app);
 
-	int NO_BODIES = 10 * 1024;
+	int NO_BODIES = 20 * 1024;
 	ParticleSystem *tPs = new ParticleSystem(NO_BODIES);
 
 	test_times res;
@@ -81,7 +81,13 @@ int main() {
 
 	// No. Bodies, tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot
 	std::cout << "NO_BODIES, tBuildTree, tCalcTreeCOM, tFlattenTree, tStep, tTot" << std::endl;
-	outfile << NO_BODIES << ',' << res.tBuildTree << ',' << res.tCalcTreeCOM << ',' << 0.0f << ',' << res.tStep << ',' << res.tTot << std::endl;
+	outfile << NO_BODIES << ',' << res.tBuildTree << ',' << res.tCalcTreeCOM << ',' << res.tFlattenTree << ',' << res.tStep << ',' << res.tTot << std::endl;
+	std::cout << "No. Bodies: " << NO_BODIES << std::endl
+		<< "tBuildTree: " << res.tBuildTree << std::endl
+		<< "tCalcTreeCom: " << res.tCalcTreeCOM << std::endl
+		<< "tFlattenTree: " << res.tFlattenTree << std::endl
+		<< "tStep: " << res.tStep << std::endl
+		<< "tTot: " << res.tTot << std::endl;
 
 	delete tPs;
 
