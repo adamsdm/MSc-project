@@ -4,7 +4,7 @@
 %*******************************************************************************
 
 \chapter{Introduction}  %Title of the First Chapter
-This report is the summary of a M. Sc. in Media Technology and Engineering thesis performed at Linköping University. The reports describes a qualitative comparative study between some of the most popular general-purpose computing on graphics processing units (GPGPU) frameworks that are in use today. The comparison will focus on the differences in GPGPU frameworks in terms of performance, framework features, portability, how easy it is to develop applications in the various frameworks as well as code complexity and understandability of the application developed, with less focus on the performance. The GPGPU frameworks that is evaluated and compared in this study are CUDA, Open Computing Language (OpenCL) and DirectCompute. Along with the GPGPU frameworks mentioned, a algorithmic skeleton implementation is also implemented using SkePU, and compared to the GPGPU implementations when running different backends.
+This report is the summary of a M. Sc. in Media Technology and Engineering master thesis performed at Linköping University at the company MindRoad AB. The paper performs an qualitative comparative study between general-purpose computing on graphics processing units (GPGPU) frameworks that are in use today. The comparison will focus on the differences in GPGPU frameworks in terms of performance, framework features, portability, how easy it is to develop applications in the various frameworks as well as code complexity and understandability of the application developed, with less focus on the performance. The GPGPU frameworks that is evaluated and compared in this study are CUDA \cite{AboutCuda}, Open Computing Language (OpenCL) \cite{KhronosOpenCL} and DirectCompute \cite{NVidiaDirectCompute}. Along with the GPGPU frameworks mentioned, a algorithmic skeleton implementation is also implemented using SkePU, and compared to the GPGPU implementations when running different backends.
 
 
 %********************************** %First Section  **************************************
@@ -17,14 +17,14 @@ During the last decades, the performance of central processing units (CPU) have 
     \item Power wall --- Increased clock rate needs more power which in turns leads to heat problems
 \end{itemize}
 
-These problems have started a trend among CPU manufacturers to create CPU's that have more than a single core on the chip, and the production of single-core CPU's have drastically decreased. Today all major chip manufacturers produce multicore CPU's and most devices use a multicore chip, and the number of cores available on chips seems to be increasing. This multicore architecture is however not new technology, graphics processing unit's (GPU) have been using this technology for a long time, and modern GPU's may contain hundreds of cores. This has started a trend to not just use the computing power within a GPU to render graphics to the screen, but to use this massive amount of parallelism for more general computing. This has led to the development of frameworks specifically intended for GPGPU purposes, and some of the most popular frameworks that are used today are CUDA developed by Nvidia, OpenCL maintained by the Khronos group and backed by a huge variety of companies, as well as DirectCompute developed by Microsoft as a part of DirectX. 
+These problems have started a trend among CPU manufacturers to create CPU's that have more than a single core on the chip, and the production of single-core CPU's have drastically decreased. Today all major chip manufacturers produce multicore CPU's and most devices use a multicore chip, furthermore the number of cores available on chips seems to be increasing. This multicore concept is not a new technology, graphics processing unit's (GPU) have been using this technology for a long time, and modern GPU's may contain hundreds of cores. This has started a trend to not just use the computing power within a GPU to render graphics to the screen, but to use this massive amount of parallelism for more general computing. This has led to the development of frameworks specifically intended for GPGPU purposes, and some of the most popular frameworks that are used today are CUDA developed by Nvidia, OpenCL maintained by the Khronos group and backed by a huge variety of companies, as well as DirectCompute developed by Microsoft as a part of DirectX. 
 
-While the performance inclination CPU's have started to decline, the opposite can be said for GPU's. As can be seen in figure \ref{fig:GPUStats}, the performance of GPU's have drastically increased during the last decade. One of the main reasons for this inclination is the gaming industry where the demand for more realistic and immersive graphics are pursued, which has led to GPU's becoming cheaper and at the same time more powerful.
+While the performance inclination of CPU's have started to decline, the opposite can be said for GPU's. As can be seen in figure \ref{fig:GPUStats}, the performance of GPU's have drastically increased during the last decade. One of the main reasons for this inclination is the gaming industry where the demand for more realistic and immersive graphics are pursued, which has led to GPU's becoming cheaper and at the same time more powerful.
 
 \begin{figure}[!htbp]
     \centering
     \includegraphics [width=0.9\textwidth]{Introduction/Figs/GPUstats.png}
-    \caption{Performance comparison of GPU's over time. \\ \textbf{Source:} CPU vs. GPU Performance, MichaelGalloy.com}
+    \caption{Performance comparison of GPU's over time. \cite{michaelGalloy}}
     \label{fig:GPUStats}
 \end{figure}
 
@@ -34,7 +34,7 @@ Higher level skeleton programming libraries have also been developed, which aims
 %********************************** %Second Section  *************************************
 \section{Aim} %Section - 1.2
 
-This paper aims to evaluate different GPGPU frameworks in terms of performance, portability, code complexity and features with less focus on the performance evaluation. A suitable benchmarking algorithm will be implemented in the GPGPU frameworks CUDA, OpenCL and DirectX direct compute, as well as an implementation in the higher level skeleton library SkePU. The parallelized implementations will be evaluated against a sequential implementation of the same problem.
+This paper aims to evaluate different GPGPU frameworks in terms of performance, portability, code complexity and features with less focus on the performance evaluation. A suitable benchmarking algorithm will be implemented in the GPGPU frameworks CUDA, OpenCL and DirectX DirectCompute, as well as an implementation in the higher level skeleton library SkePU. The parallelized implementations will be evaluated against a sequential implementation of the same problem.
 
 
 %********************************** % Third Section  *************************************
@@ -50,7 +50,6 @@ This paper aims to evaluate different GPGPU frameworks in terms of performance, 
 
 %********************************** % Fourth Section  *************************************
 \section{Delimitations}
-This section will present some delimitations for the implementation and evaluation.
 
 The selected algorithm will only be implemented in the discussed frameworks:
 \begin{itemize}
@@ -59,7 +58,7 @@ The selected algorithm will only be implemented in the discussed frameworks:
     \item DirectCompute
 \end{itemize}
 
-\noindent aswell as an implementation in SkePU, running OpenCL, CUDA, OpenMP and a sequential backend \cite{enmyren2010skepu}. The selected algorithm will thus not be implemented in other GPGPU frameworks such as OpenGL's compute shader, or a parallel CPU based implementation, using e.g OpenMP or similar frameworks.
+\noindent aswell as an implementation in SkePU, running OpenCL, CUDA, OpenMP and a sequential backend \cite{enmyren2010skepu}. The selected algorithm will thus not be implemented in other GPGPU frameworks and architectures such as OpenGL's compute shader, or a parallel CPU based implementation using e.g OpenMP or similar frameworks.
 
 Even though other optimization algorithms exists for the N-Body problem, only the Barnes-Hut algorithm will be implemented in this work. The reason for this is because the thesis will not focus on evaluating the performance of the frameworks when running the selected algorithm, but on the comparison between frameworks in terms of portability, code complexity and features, which multiple optimization techniques implementations won't contribute to. Furthermore to give the implementation a fair comparison, the tree-structure used in Barnes-Hut will be a sequential implementation and will be performed on the host.
 
@@ -70,7 +69,7 @@ This section describes previous research on the subject, both in terms of perfor
 \subsection{Framework comparison}
 In 2016 a similar master thesis was performed by T. Sörman where the frameworks CUDA, OpenCL, DirectCompute and OpenGL was compared as well as how the GPGPU implementations performed compared to an multithreaded implementation in OpenMP. \cite{Torbjorn}. Also performed at MindRoad AB, the thesis compares the different frameworks primarily in terms of performance, unlike this thesis which puts more focus on the portability, code complexity and features of the different frameworks. This work will also evaluate the skeleton programming framework SkePU which was not included in Sörmans research \cite{enmyren2010skepu}. 
 
-The algorithm Sörman evaluated is a parallel implementation of the fast fourier fransform (FFT), and the result showed that the fastest framework, CUDA, was twice as fast as the slowest, OpenCL, and that the although older frameworks OpenGL and DirectX, are competitive with both CUDA and DirectX in terms of performance.
+The algorithm Sörman evaluated is a parallel implementation of the Fast Fourier Transform (FFT), and the result showed that the fastest framework, CUDA, was twice as fast as the slowest, OpenCL, and that the compute shader based frameworks OpenGL and DirectX, are competitive with both CUDA and DirectX in terms of performance.
 
 A lot of previous research has been abducted on the subject of comparing the performance between CUDA and OpenCL. K. Karimi et. al. performed an performance comparison between the two frameworks which showed similar results to Sörmans comparison \cite{karimi2010performance}. Although the performance gap was more subtle in Karimi. et. al. work, the result still showed that CUDA was faster than OpenCL. 
 
@@ -112,7 +111,7 @@ C. Kessler et. al. paper also included a comparison between an implementation of
 
 
 \subsection{N-Body with Barnes-Hut}
-The N-Body problem is a common implementation, and a lot of previous work has been done regarding the N-Body problem. In the book GPU Gems 3, L. Nyland et. al. at NVIDIA corporation describes an CUDA implementation of the N-Body used to generate an astrophysical simulation \cite{nyland2007fast}. The implementation is done in CUDA, and describes various methods how the CUDA implementation can be optimized with the use of e.g. shared memory, loop-unrolling and coalesced memory accesses. The result of the performance can be seen in figure \ref{fig:GPUGemsNBodyPerformance}. The implementation described in this article does not use the Barnes-Hut algorithm to further speed up the simulation, but instead use what Nyland et. al. call all-pairs, meaning that all N-bodies are compared to all other, resulting in the base implementation further described in section \ref{subsec:TheoryNBody}. 
+The N-Body problem is a common problem, and a lot of previous work has been done regarding the N-Body problem. In the book GPU Gems 3, L. Nyland et. al. at NVIDIA corporation describes a parallel CUDA implementation of the N-Body used to generate an astrophysical simulation \cite{nyland2007fast}. The implementation is done in CUDA, and describes various methods how the CUDA implementation can be optimized with the use of e.g. shared memory, loop-unrolling and coalesced memory accesses. The result of the performance can be seen in figure \ref{fig:GPUGemsNBodyPerformance}. The implementation described in this article does not use the Barnes-Hut algorithm to further speed up the simulation, but instead use what Nyland et. al. call \textit{all-pairs}, meaning that all N-bodies are compared to all other, resulting in the base implementation further described in section \ref{subsec:TheoryNBody}. 
 
 \begin{figure}[!htpb]
     \centering

@@ -9,3 +9,8 @@ How to copy Octree to GPU
 
 How to traverse the octree without using recursion
 
+Copy octree of unknown size to the kernel -> flatten the tree into a array
+ 
+OpenCL/DirectCompute does not support copying classes to the kernel -> convert OctreeNode to structure sOctreeNode
+ 
+DirectCompute queue class/struct, cannot unroll while-loop

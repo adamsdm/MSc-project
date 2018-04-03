@@ -5,7 +5,7 @@
 \section{Implementation}
 A common application where GPGPU is used is when computing calculation heavy simulations such the N-Body problem described in this thesis. Other common visualizations where GPGPU can be applied is to visualize fractals such as the Julia or Mandelbrot set, named after the french mathematician Gaston Julia and Benoit Mandelbrot. GPGPU has also been used in medicine for accelerated medical image reconstruction \cite{archirapatkave2011gpgpu}, as well as accelerating the Marching Cubes algorithm \cite{johansson2006accelerating}. 
 
-This section describes the implementation of the visualization and the parallel N-Body algorithm in all discussed frameworks, as well as how the measurements were performed and what framework specific features was used. All implementations was implemented in C/C++. The visualization was implemented in the cross-platform API OpenGL on a Windows PC.
+This section describes the implementation of the visualization and the parallel N-Body algorithm in all discussed frameworks, as well as how the measurements were performed and what framework specific features was used. All implementations was implemented in C/C++. The visualization was implemented in the cross-platform API OpenGL on a PC.
 
 \section{Visualization} \label{sec:visualization}
 
@@ -20,13 +20,13 @@ One way is to generate a single vertex buffer object (VBO) with all the particle
 
 The second way is to use geometry shaders to render a particle in each position. The downside to using geometry shader is that geometry shaders is only supported in systems with OpenGL version 3.2+, and is thus not very portable. 
 
-The third way is to use instancing, meaning that a single mesh is used, but many instances of the mesh. This solution has a nice balance between performance and availability and was thus chosen in this implementation. To achieve this, two main VBO's are used: one VBO containing the positions of the quad, i.e. four vertex coordinates, and a second VBO of size $n$ containing the positions of the instances of the quad, where $n$ is the number of instances. The quad is then rendered using \lstinline{glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, n)} \cite{OpenCLDocs}, where the first parameter states that the object should be rendered as a triangle strip, i.e. a series of connected triangles, sharing vertices. The second parameter specifies the starting index in the enabled arrays. The third parameter specifies the number of indices to be rendered, and the fourth the number of instances. The quad positions are passed to the vertex shader as an attribute, and the shader then translates the quad into its position. The result of the implementation can be seen in figure \ref{fig:OpenGLEarlyVis}, where $n=3.5 \times 10^6$, running at a stable ~60fps on a Nvidia GTX970 GPU. Each quad is rendered in a random $(x,y,z)$ position in a given bounding box.
+The third way is to use instancing, meaning that a single mesh is used, but many instances of the mesh. This solution has a nice balance between performance and availability and was thus chosen in this implementation. To achieve this, two main VBO's are used: one VBO containing the positions of the quad, i.e. four vertex coordinates, and a second VBO of size $n$ containing the positions of the instances of the quad, where $n$ is the number of instances. The quad is then rendered using \lstinline{glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, n)} \cite{OpenCLDocs}, where the first parameter states that the object should be rendered as a triangle strip, i.e. a series of connected triangles, sharing vertices. The second parameter specifies the starting index in the enabled arrays. The third parameter specifies the number of indices to be rendered, and the fourth the number of instances. The quad positions are passed to the vertex shader as an attribute, and the shader then translates the quad into its correct position. The result of the implementation can be seen in figure \ref{fig:OpenGLEarlyVis}, where $n=3.5 \times 10^6$, running at a stable ~60fps on a Nvidia GTX970 GPU. Each quad is rendered in a random $(x,y,z)$ position in a given bounding box.
 
 
 \begin{figure}[!htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{Method/Figs/OpenGLVis_N=3500000.png}
-    \caption{Instanced quad rendering, N=3.5*10^6}
+    \caption{Instanced quad rendering, 3.5*10^6 instances}
     \label{fig:OpenGLEarlyVis}
 \end{figure}
 
@@ -36,7 +36,7 @@ The third way is to use instancing, meaning that a single mesh is used, but many
 This section will describe how a sequential implementation of the all-pairs N-body algorithm was implemented, followed by an optimized sequential implementation using the Barnes-Hut method. \cite{barnes1986hierarchical}
 
 
-\subsection{All pairs implementation}
+\subsection{All-pairs implementation}
 With the particle system visualization implementation described in section \ref{sec:visualization} as a template, a sequential all-pairs N-Body simulation was implemented. A particle is represented by a data structure which contains the position, velocity and mass of the particle. These particles are then instantiated and given a random position. All particles are given the same amount of mass, which makes it easier to analyze the simulation. To make the visualization more visually interesting, the particles are placed in a galaxy like structure using polar coordinates using a random $\varphi$ angle, and a random radius $r$ such that $x = r \ cos \ \varphi, \ y = r \ sin \ \varphi$. If the particles index is even it is translated with a constant length in the positive x-direction, whilst if the index is odd, it is translated in the negative x-direction resulting in two separated galaxy shapes.
 
 To further mimic the behavior of a galaxy, each particle is given a speed according to:
@@ -45,7 +45,7 @@ To further mimic the behavior of a galaxy, each particle is given a speed accord
 \end{equation}
 \noindent where $\boldsymbol v$ is the velocity of the particle, $\boldsymbol c$ is the center of the galaxy, $\boldsymbol p$ is the position of the particle and $\boldsymbol z$ is the $z$ vector $(0, 0, 1)$. This results in that each particle will spin around the center of the galaxy, simulating how stars in a real galaxy behaves.
 
-Once the system has been initialized, the integration is done in two separate steps. First, calculate the net force $F$ on each particle, as it is affected by gravity from all others according to equation \ref{eq:totGravForce}. In a sequential all-pairs implementation, this is done by using a nested for-loop resulting in a time complexity of $O(n^2)$. The next step is to update the position of the particle which is done using a first order Euler integration according to:
+Once the system has been initialized, the integration is done in two separate steps. First, the net force $F$ applied on each particle is calculated as it is affected by gravity from all others according to equation \ref{eq:totGravForce}. In a sequential all-pairs implementation, this is typically done by using a nested for-loop resulting in a time complexity of $O(n^2)$. The next step is to update the position of the particle which is done using a first order Euler integration according to:
 \begin{equation} \label{eq:EulerIntegrationPosition}
     \boldsymbol p' = \boldsymbol p + F * \Delta t
 \end{equation}
@@ -58,11 +58,11 @@ The next step in the implementation was to start working on the Barnes-Hut algor
 
 A problem with the insertion is to know what octant the particle should be inserted to. Since there are eight octant's this can be represented as a single byte. By comparing the position to be inserted with the middle of the cells x,y,z dimensions, this problem is reduced to a single binary expression by following a set of fixed rules. Pseudocode for this procedure can be seen in algorithm \ref{alg:OctreeBuild}, the procedure \lstinline{insert} is called for the root of the tree once for each particle. The resulting octree applied to a system with 2048 particles is visualized in figure \ref{fig:OctreeVisualized}.
 
-Once the tree has been constructed, the next step is to calculate each nodes center of mass (COM) and the total mass contained inside the spatial domain that the node represents. This is again done by utilizing recursion. Each nodes COM is the average of it's children's COM and its total mass is the sum of it's children's total mass. The algorithm starts by calculating the root's COM and total mass, which recursively steps through the tree, calculating the COM of each nodes as it traverses the tree. The termination condition of the recursiveness is when a leaf node, or a uninitialized empty cell is reached.
+Once the tree has been constructed, the next step is to calculate each nodes center of mass (COM) and the total mass contained inside the spatial domain that the node represents. This is again done by utilizing recursion. Each nodes COM is the average of it's children's COM and its total mass is the sum of it's children's total mass. The algorithm starts by calculating the root's COM and total mass, which recursively steps through the tree, calculating the COM of each nodes as it traverses the tree. The termination condition of the recursion is when a leaf node, or a uninitialized empty cell is reached.
 
 \nomenclature[z-COM]{COM}{Center of Mass}
 
-\begin{figure}[!h]
+\begin{figure}[!htbp]
     \centering
     \begin{subfigure}[b]{0.65\textwidth}
         \includegraphics[width=\textwidth]{Method/Figs/PSNoBounds.png}
@@ -71,7 +71,7 @@ Once the tree has been constructed, the next step is to calculate each nodes cen
     ~ 
     \begin{subfigure}[b]{0.65\textwidth}
         \includegraphics[width=\textwidth]{Method/Figs/PSWithBounds.png}
-        \caption{Above particle system with rendered octree bounds}
+        \caption{(a) with rendered octree bounds}
     \end{subfigure}
     \caption{Particle system subdivided into an octree}
     \label{fig:OctreeVisualized}
@@ -181,7 +181,7 @@ When the forces are calculated, the velocity property of each particle is update
 Once a sequential implementation was in place the work on porting the implementation to CUDA was started.
 The octree data structure was built using pointers, pointing to its child sub-trees. This creates two problems when copying the tree structure to the GPU. The first problem is that the size of the tree is unknown and changes very frequently as the tree is rebuilt every simulation step, resulting in an uncertain amount of data to be transferred to the device. Although the size of the tree can be calculated, either when the tree is beeing built, or by a simple depth- or breadth-first traversal of the tree once the tree has been constructed. This solution does however only solve the first problem.
 
-The second problem is that pointers in the octree point to a memory location in the heap memory, which when transferred to the device must be updated to point at the correct position in the VRAM memory, which would be a performance heavy task. Moreover, complicated structures involving a lot amount of pointers works poorly performance-wise in CUDA, since all the pointer chasing might drastically decrease the total memory bandwidth. 
+The second problem is that pointers in the octree point to a memory location in the heap memory, which when transferred to the device must be updated to point at the correct position in the VRAM, which would be a performance heavy task. Moreover, complicated structures involving a lot amount of pointers works poorly performance-wise in CUDA, since all the pointer chasing might drastically decrease the total memory bandwidth. 
 
 The solution to both problems is to flatten the tree into an array with a fixed size $n > N$, where $N$ is the number of bodies. The tree will have $N$ leaves, so the size of the array has to have a fixed size which is bigger than the amount of bodies. Implementation wise this was done in two steps.
 The first step was to do an iterative breadth-first traversal of the tree, starting from the root, and inserting the traversed nodes into the array, as well as assigning the index to each node. This results in that the array will be sorted top-down, left-right from the tree with the root at index one, visualized on a binary tree in figure \ref{fig:BreadthFirstTreeIndices}. Now that the tree has been flattened into a single list, the child pointers of each node can be replaced with the indices of the child nodes which lies in the same list as the node, making the requirement of pointers in the CUDA kernel redundant and avoiding the the pointer chasing issue.
@@ -192,7 +192,6 @@ The first step was to do an iterative breadth-first traversal of the tree, start
     \caption{Order of the flattened tree when a breadth-first flattening algorithm is applied to a binary tree}
     \label{fig:BreadthFirstTreeIndices}
 \end{figure}
-
 
 Now that the octree has been flattened into a tree, it can effortlessly be copied to the device since both the size of the flattened tree is known, and the pointers to each nodes children has been abstracted away and been replaced with indices in the flattened tree, and since CUDA supports the ability of passing class objects to a kernel, the flattened array consisting of octree nodes could simply be passed to the kernel as an argument. 
 
@@ -254,17 +253,119 @@ struct MyQueue {
 
 Once the CUDA implementation was done, the work started on the implementation of an OpenCL implementation. To be able to perform a fair comparison between the selected frameworks, the same host program that was used for the CUDA implementation was used for the OpenCL implementation as well. This works well since the main program is implemented in a way so that the device part of the code is well abstracted away from the main application. The host is responsible for building the octree, flattening the octree into an array as well as the graphical simulation, the device part of the code is responsible for calculating forces and updating the positions of the bodies. The device part of the application is separated into its own class object, thus abstracting it away from the main application. 
 
-The OpenCL version used for this implementation is Nvidia's OpenCL implementation, version 1.2.
-Although OpenCL are in many aspects very similar to CUDA, some major differences exist. Since OpenCL does not only target GPU devices, but a wider range of parallel hardware (see section \ref{sec:OpenCLTheory}), the implementation needs to specify what device that the parallel kernel should run on. This step is automated by CUDA since it selects the default GPU device available on the system. Since this implementation was performed at a system containing only one GPU, this implementation selects the first available GPU residing in the system. Moreover, unlike CUDA where the device code is processed at compile time using Nvidias NVCC compiler, OpenCL has to compile the kernel code during runtime. Although the kernel code can be written inline as a string, the common practice is to seperate the device and host code which was done in this implementation. The kernels are written in separate \lstinline{.cl} files which is read into a string in the host application, and compiled at run time.
+The OpenCL distribution used in this implementation is Nvidia's OpenCL implementation, version 1.2, which is the newest version developed by Nvidia. 
+Although OpenCL are in many aspects very similar to CUDA, some major differences exist. Since OpenCL does not only target GPU devices, but a wider range of parallel hardware (see section \ref{sec:OpenCLTheory}), the implementation needs to specify what device that the parallel kernel should run on. This step is automated by CUDA since it selects the default GPU device available on the system. Since this implementation was performed at a system containing only one GPU, this implementation selects the first available GPU residing in the system. Moreover, unlike CUDA where the device code is processed at compile time using Nvidia's NVCC compiler, OpenCL has to compile the kernel code during runtime. Although the kernel code can be written inline as a string, the common practice is to separate the device and host code which was done in this implementation. The kernels are written in separate \lstinline{.cl} files which is read into a string in the host application, and compiled at run time.
 
-Similar to the CUDA implementation, the parts of the N-Body simulation that has been parallelized is the force calculation as well as the position updating. The flattened tree that is to be copied to the device is a data structure containing a list of class objects, \lstinline{OctreeNode}. To get this data to the device in CUDA is to just do a simple copy of the array to the device memory since CUDA kernels are based on C++ and does thus support classes. Nvidias OpenCL version 1.2 which is used in this implementation uses the language OpenCL C for device code and does thus not support this feature. Newer versions of OpenCL (v2.0, released in 2013) does support OpenCL C++ in kernels which is based on C++11 and allows for the creation of classes, templates, operator overloading, function overloading etc \cite{OpenCLC++Introduction}. OpenCL C++ does however not support certain C++ features such as exceptions, memory allocation, recursion and function pointers. Although Nvidia is a major backer to OpenCL, Nvidia's latest version of OpenCL is version 1.2, which is used in this implementation, and does thus not support C++ features, so the device code has to be written in OpenCL C. This means that the process of copying the flattened tree to the device is more cumbersome than in the CUDA implementation. Although OpenCL C does not support classes, it supports data structures to be copied between the host and the device. Thus the flattened tree was reworked to contain data structure representations of the \lstinline{OctreeNode} class. This step is done in the host algorithm that flattens the tree. Now that the tree has been flattened and each node is represented as a data structure instead of a class object, the flattened tree can be copied to the device.
+Similar to the CUDA implementation, the parts of the N-Body simulation that has been parallelized is the force calculation as well as the position updating. The flattened tree that is to be copied to the device is a data structure containing a list of class objects, \lstinline{OctreeNode}. To get this data to the device in CUDA is to just do a simple copy of the array to the device memory since CUDA kernels are based on C++ and does thus support classes. Nvidia's OpenCL version 1.2 which is used in this implementation uses the language OpenCL C for device code and does thus not support this feature. Newer versions of OpenCL (v2.0, released in 2013) does support OpenCL C++ in kernels which is based on C++11 and allows for the creation of classes, templates, operator overloading, function overloading etc \cite{OpenCLC++Introduction}. OpenCL C++ does however not support certain C++ features such as exceptions, memory allocation, recursion and function pointers. Although Nvidia is a major backer to OpenCL, Nvidia's latest version of OpenCL is version 1.2, and does thus not support C++ features, so the device code has to be written in OpenCL C. This means that the process of copying the flattened tree to the device is more cumbersome than in the CUDA implementation. Although OpenCL C does not support classes, it supports data structures to be copied between the host and the device. Thus the flattened tree was reworked to contain data structure representations of the \lstinline{OctreeNode} class. This step is done in the host algorithm that flattens the tree. Now that the tree has been flattened and each node is represented as a data structure instead of a class object, the flattened tree can be copied to the device.
 
 As mentioned in section \ref{sec:CUDAImplementation}, all Nvidia GPU's of compute capability 2.0 support recursive calls in kernels, and although the GPU used for the OpenCL implementation is the same as the CUDA implementation and does thus hardware-wise support recursive calls, OpenCL does not. The approach to the kernel implementation is thus different to the CUDA implementation. Since the recursive traversal of the tree is more intuitive and simpler, it was the first force calculation algorithm that was implemented in CUDA, but since OpenCL does not support recursion inside kernels, the iterative version was implemented straight away. To perform a breadth-first tree traversal, the most common iterative way is to used a queue, where non-visited nodes are enqueued. As mentioned in section \ref{sec:CUDAImplementation}, CUDA does not support the std library, which is also the case in OpenCL, and an own implementation of a queue was made. In CUDA this was done using a C++ \lstinline{struct}, containing initialized member variables and member functions expected from a queue such as \lstinline{push(), pop(), front()} and \lstinline{empty()}. However since OpenCL C is based on C99, where data structures can't contain member functions, and structure variables can't be given a default value, the code responsible for pushing, popping etc. from the queue had to be inlined in the kernel.
 
 
-\section{DirectCompute}
+\section{DirectCompute} \label{sec:DirectComputeImplementation}
+Compared to CUDA and OpenCL, DirectX Compute Shaders, or DirectCompute, is very different. Whilst CUDA and OpenCL are frameworks developed with the purpose of GPGPU, DirectCompute is more similar to traditional graphics programming and resembles traditional GPGPU using fragment-/pixel-shaders. DirectX developed by Microsoft, for Microsoft systems, is widely available on Microsoft systems, and DirectX 11 is included in systems running Windows 7 or newer which as of February 2018 is ~96\% of all windows systems, see fig \ref{fig:WindowsStats}. \cite{WindowsStats}
+
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Method/Figs/StatCounter-windows_version-ww-monthly-201702-201802.png}
+    \caption{Desktop Windows Version Market Share Worldwide}
+    \label{fig:WindowsStats}
+\end{figure}
+
+
+
+Released as a part of the Direct3D 11, Microsoft's Compute Shader (CS) is an alternative method of performing general purpose computing on the GPU \cite{Direct3D11Features}. Similar to a CUDA or OpenCL kernel, the CS is similar to a vertex- or pixel-shader but with the purpose of doing more general computing, and is written in High Level Shading Language (HLSL), also developed by Microsoft. 
+
+
+Compared to CUDA and OpenCL, the initial setup procedure in a Direct Compute application is more complex and a few steps has to be done before the application is ready to perform the computations. 
+
+The first step is to create a device context and to create a target device on which the computation will be performed.
+The device is created by calling the method \lstinline{D3D11CreateDevice}, with arguments defining what type of device that should be created. Since DirectCompute is only supported on systems with Direct3D 10 or 11, this must be taken into account when creating the device. To specify this, a \lstinline{D3D_FEATURE_LEVEL} variable is passed as an argument to the device creation method which specifies which feature levels the device will use. Once the method has been called, the resulting feature level of the device can be determined. This information is important because if the resulting feature level is to low, lower than 10.0, CS is not supported. This method also allows the option to select what hardware the device is referring to, in this implementation the default graphics card is selected.
+
+The second step is to compile the actual HLSL compute shaders. The DirectX provides a method for doing this depending on the DirectX version is running on the system. One thing to keep in mind when creating the CS is what CS shader profile to use. Although there's not much feature-wise difference between CS 4.0 and 5.0, if the system is running Direct3D (D3D) feature level of 11 we generally want to use CS 5.0 as it allows for better performance on 11-class hardware. The HLSL CS source file can then be compiled by using either \lstinline{D3DCompileFromFile} or \lstinline{D3DX11CompileFromFile}, depending on the feature level of the hardware. If the source file is successfully compiled, a CS instance object can then be created by from the compiled shader code.
+
+The process of performing the computation on the device is similar to the process in CUDA and OpenCL. First memory has to be allocated on the device. Similar to graphics programming, DirectCompute uses buffers to achieve this. These buffers have a wide variety of options which are set by using a \lstinline{D3D11_BUFFER_DESC} data structure instance, passed as an argument when creating the buffer. This description may contain information such as if it is a constant buffer, if it is a raw or structured buffer, the size of an element in the buffer as well as the total size of the buffer. This data structure along with the data the buffer will contain is then be passed to \lstinline{ID3D11Device::CreateBuffer} which creates an buffer instance object. 
+
+Before the CS can be launched, view interfaces has to be generated from the buffers which can then be passed accessed by the CS. Two types of view interfaces was used in this implementation: \lstinline{ID3D11ShaderResourceView} and \lstinline{ID3D11UnorderedAccessView}, where the main difference is the CS has read-only access to a a shader resource view (SRV), whilst the CS has read-and-write access to a unordered access view (UAV) at the cost of performance, UAVs does thus act as outputs from the compute shader and is the only type of view interface that can be used as an output buffer. Constant buffers can be passed straight to the shader without requiring the use of SRVs or UAVs.
+
+Now all information needed to launch the CS is received. Although it requires a lot of code to set up buffers and view interfaces, the process of launching a CS is trivial. Similar to graphics programming, we first have to bind the shader to make it active, this is done by using the method \lstinline{CSSetShader} with the corresponding CS instance as an argument. We can then pass the view interfaces and constant buffers to the CS in a similar fashion by calling \lstinline{CSSetUnorderedAccessViews}, \lstinline{CSSetShaderResources} or \lstinline{CSSetConstantBuffers}. The CS is then launched by calling \lstinline{Dispatch(X,Y,Z)}, where \lstinline{X,Y,Z} specifies the number of thread groups to be launched in each dimension. The number of thread groups (blocks in CUDA, work groups in OpenCL) is thus specified from the host when dispatching the CS, the number of threads per group is specified on the device in the CS by using the \lstinline{numthreads(X,Y,Z)} attribute, which specifies how many threads should be dispatched in each thread group. E.g a \lstinline{Dispatch(8,1,1)} with a \lstinline{numthreads(512,1,1)} would dispatch a compute shader with a total of 8 thread groups, each group containing 512 threads, thus the total number of threads would be 4096. The thread and group index can then be retrieved with the keywords listed in table \ref{tab:HLSLIndexKeywords}.
+The result from the CS can then be retrieved by using the method \lstinline{Map}, and copy the data back into its original container with a \lstinline{memcpy}. 
+
+\begin{table}
+    \begin{tabularx}{\textwidth}{ |X|X| }
+      \hline
+      \rowcolor{gray}
+      \textbf{Variable name}    & \textbf{Description}  \\ \hline                         
+      SV\_GroupIndex            & Flattened 1D index of a thread within a thread group \\ \hline
+      SV\_DispatchThreadID      & Global thread index, sum of SV\_GroupID * numthreads and GroupThreadID            \\ \hline
+      SV\_GroupThreadID         & 3D Indices for a thread within a group \\ \hline
+      SV\_GroupID               & Indices for which thread group a compute shader is executing in \\ \hline
+    \end{tabularx}
+\caption{\label{tab:HLSLIndexKeywords} HLSL index variables.}
+\end{table}
+
+Since all data that is to be passed to the CS has to be bound to a buffer, there is no way of directly passing single data elements such as integers or floating points. The common practice of achieving this is to create a data structure containing all single element variables, and then generate a single element constant buffer with the data structure which is passed to the CS. Since it is a constant buffer, this buffer can be passed to the CS without the need of a SRV or UAV.
+
+The UAVs, SRVs and constant buffers are unlike OpenCL and CUDA not recieved as arguments to the kernel function, but as "global" variables inside the shader code. The buffer is recieved according to \lstinline{bufferType<T> bufferName : register(Type#)} in the hlsl code, where the \lstinline{#} specifies in what register slot the buffer is assigned, which is specified when setting the buffer from the host, and the \lstinline{Type} is a single character describing the register type. Although many types of HLSL buffers exists, the ones used in this implementation are listed in table \ref{tab:HLSLBufferTypes}. The register types used in this implementation are listed in table \ref{tab:HLSLRegTypes}.
+
+
+\begin{table}
+    \begin{tabularx}{\textwidth}{ |X|X| }
+      \hline
+      \rowcolor{gray}
+      \textbf{Buffertype}   & \textbf{Description}  \\ \hline 
+      cbuffer               & Constant buffer       \\ \hline
+      RWBuffer              & Raw buffer            \\ \hline
+      RWStructuredBuffer    & Raw structured buffer \\ \hline
+    \end{tabularx}
+\caption{\label{tab:HLSLBufferTypes} HLSL buffer types.}
+\end{table}
+
+\begin{table}
+    \begin{tabularx}{\textwidth}{ |X|X| }
+      \hline
+      \rowcolor{gray}
+      \textbf{Register type}   & \textbf{Description}  \\ \hline 
+      b & Constant buffer               \\ \hline
+      t & Texture and texture buffer    \\ \hline
+      c & Buffer offset                 \\ \hline
+      s & Sampler                       \\ \hline
+      u & Unordered Access View         \\ \hline
+    \end{tabularx}
+\caption{\label{tab:HLSLRegTypes} HLSL register types.}
+\end{table}
+
+
+
+Similar to the CUDA and OpenCL implementation, there are three datastructures that has to be passed to the CS in order to calculate the forces and update the positions:
+
+\begin{itemize}
+    \item The positions of the particles 
+    \item A container containing more information about each particle such as it's velocity and mass 
+    \item The flattened octree. 
+\end{itemize}
+
+Both the position container and the particle container has to be updated in the CS, and these are thus passed to the shader as UAVs. The flattened octree container however is unmodified in the shader and can thus be passed as a SRV to the shader for optimization purposes. To minimize the amount of overhead generated by copying data between the host and the device, the shader views are copied once before the force calculation CS is dispatched. There is no need to retrieve the result from this dispatch since the required data for the position update CS is already on the device. Once both dispatches has been finished, the data can be copied back into it's original containers.
+
+\vskip .5em
+Two types of CS was used in the implementation, one CS responsible for calculating the forces applied on each body in the system, and a second CS responsible for updating the positions. Since the positions have to be updated after the force calculation has been finished for each simulation step, two CS dispatches was made to be able to synchronize between the thread groups. 
+
+The first CS, the force calculation CS, was ported from the OpenCL force calculation kernel and is very similar. 
+The CS responsible for updating the positions of the bodies is very trivial. Since the force calculation has been done before this shader is dispatched, all information needed to calculate the new position of the body is obtained. The position is updated by moving its position in the direction of its velocity vector, calculated in the force update CS, times the delta time. Since the positions have to be retrieved and read by the host to later be passed to the visualization, the position vector is converted into a raw buffer, and passed to the shader as an UAV. 
+
+The force calculation CS is more complex than the position update CS. Since HLSL does not support recursive calls, an iterative implementation using a queue was implemented. Although shader model 5.0 used in this implementation support C++ like data structures and classes with member functions and variables, some limitations exists. HLSL classes/data structure cannot contain member variables with initial values. This can however easily be avoided by e.g using a initialize member function. However when using a data structure method inside a loop, the loop is forced to be unrolled. When performing the iterative tree traversal using a queue, a while-loop is running until the queue is empty. The problem is that the while loop cannot be unrolled, and thus it's not a viable solution to use a data structure representing a queue. The solution to this was similar to how the same problem was solved in the OpenCL implementation as described in section \ref{sec:OpenCLImplementation}, by in-lining the push/pop operations inside the CS. The actual force calculation is very similar to the force calculation described in section \ref{sec:CUDAImplementation} and \ref{sec:OpenCLImplementation}.
+
 
 \section{SkePU}
 
+
+
+
+
+
+\nomenclature[z-SRV]{SRV}{Shader Resource View}
+\nomenclature[z-UAV]{UAV}{Unordered Access View}
 \nomenclature[z-VBO]{VBO}{Vertex Buffer Object}
+\nomenclature[z-D3D]{D3D}{Direct3D}
 \nomenclature[z-FIFO]{FIFO}{First in, first out}
+\nomenclature[z-HLSL]{HLSL}{High Level Shading Language}

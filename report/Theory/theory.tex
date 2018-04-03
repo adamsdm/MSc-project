@@ -6,13 +6,13 @@ This chapter describe background theory about parallelism, and why it has become
 \section{Background} 
 As mentioned in section \ref{sec:IntroductionMotivation}, the performance inclination of single-cored CPU's has reached a limit. The reason for this decline is due to three walls.
 
-The \textbf{ILP-wall} which states that there is not enough instruction level parallelism to keep the CPU busy. Some techniques do however exist such as Very Large Instruction Word (VLIW) and the Superscalar Architecture but are limited by the hardware complexity.
+The \textbf{ILP-wall} which states that there is not enough instruction level parallelism to keep the CPU busy. Some techniques do however exist such as Very Large Instruction Word (VLIW) and the Superscalar Architecture but they are limited by the hardware complexity.
 
 The second wall, the \textbf{Memory wall} is reached because of the gap between the CPU speed and accesses to off-chip memory.
 
 As mentioned in section \ref{sec:IntroductionMotivation} and visualized in figure \ref{fig:CPUstats}, Moore's law is still valid, but the increased amount of on-chip micro transistors needs an increased amount of power, which leads to overheating problems and has been named the \textbf{Power wall}.
 
-The solution to all of these problems are however the same. Although it is not possible to increase the single-thread performance, but we can put more cores on a chip. Today, all major CPU manufacturers develop multi-core CPU's, and most devices used in our everyday life such as smartphones, laptops 
+The solution to all of these problems are however the same. Although it is not possible to increase the single-thread performance, we can put more cores on a chip. Today, all major CPU manufacturers develop multi-core CPU's, and most devices used in our everyday life such as smartphones, laptops 
 and desktop CPU's have a multi-core architecture, and the number of cores on a chip seems to be increasing, see figure \ref{fig:CPUstats}
 
 \begin{figure}[!h]
@@ -29,7 +29,7 @@ being exploited by graphics applications" \cite{thompson2002gpgpu}.
 \subsection{GPGPU History}
 With the release of programmable shaders and floating point precision GPU's in 2001, the idea of performing general purpose computing on the GPU became popular. Early research on the subject implemented simple, well-parallelizable problems such as vector or matrix additions, and one of the first scientific GPGPU problems that outperformed the CPU was a implementation of LU factorization. \cite{CUDAtoOpenCL}. Another research on the subject performed by Thompson et. al. from 2002 showed that a simple arithmetic operation applied to all elements of a vector of varying sized, outperformed the CPU once the problem size grew large enough which is generally the case for GPGPU.\cite{thompson2002gpgpu}.
 
-These early adaptations of GPGPU used the traditional rendering pipeline by performing computations in the shaders of the application, using the two major application programming interfaces (API) OpenGL and DirectX. Although this approach adds some limitations, it is still quite widespread and are still in use today. Since then, both OpenGL and DirectX has released shaders specifically purposed for GPGPU. These types of shaders are known as Compute Shaders (CS), and Microsoft released their CS support with the DirectCompute as a part of the DirectX collection of APIs.
+These early adaptations of GPGPU used the traditional rendering pipeline by performing computations in the fragment/pixel shaders of the application, using the two major application programming interfaces (API) OpenGL and DirectX. Although this approach adds some limitations, it is still quite widespread and are still in use today. Since then, both OpenGL and DirectX has released shaders specifically purposed for GPGPU. These types of shaders are known as Compute Shaders (CS), and Microsoft released their CS support with the DirectCompute as a part of the DirectX collection of APIs.
 
 Later on Nvidia realized the potential of GPGPU and developed the CUDA framework to make GPGPU programming easier by adding lots of features and simplifying the data transfer. Later on, OpenCL was released with the same purpose, with a lot of backing major companies such as Apple and IBM. It is today maintained by the Khronos group, which also maintains OpenGL.
 
@@ -44,10 +44,10 @@ As previously discussed in section \ref{sec:IntroductionMotivation}, whilst a CP
 \end{figure}
 \nomenclature[z-GFLOPS]{GFLOPS}{Giga Floating Point Operations Per Second}
 
-\noindent This is due to the efficient area use of the GPU architecture as visualized in figure \ref{fig:GPUvsCPUArchitecture}, but in particular the SIMD architecture (Single Instruction, Multiple Data). SIMD simplifies the instruction handling since all cores receive the same instruction which is applied to multiple data in parallel, usually stored in list structures such as arrays. The instruction that should be applied to each data-element is often written as a separate piece of code, separated from the main program and run on the device (GPU, FPGA or other parallel hardware). Different frameworks use different languages in which this code is implemented, but the general GPGPU term used for this is a kernel. The most common way of executing a kernel is done in the following steps:
+\noindent This is due to the efficient area use of the GPU architecture as visualized in figure \ref{fig:GPUvsCPUArchitecture}, but in particular the SIMD architecture (Single Instruction, Multiple Data). SIMD simplifies the instruction handling since all cores receive the same instruction which is applied to multiple data in parallel, usually stored in list structures such as arrays. The instruction that should be applied to each data-element is written as a separate piece of code, separated from the main program and run on the device (GPU, FPGA or other parallel hardware). Different frameworks use different languages in which this code is implemented, but the general GPGPU term used for this is a kernel. The most common way of executing a kernel is done in the following steps:
 \nomenclature[z-SIMD]{SIMD}{Single Instruction, Multiple Data}
 \begin{enumerate}
-    \item Allocate memory from the host (typically CPU) to the device.
+    \item Allocate memory from the host (typically CPU) to the device (GPU or other parallel hardware).
     \item Copy data from the host to the allocated memory on the device.
     \item Launch the kernel, executing on the data that was just copied.
     \item Copy back the result from the device to the host.
@@ -76,7 +76,7 @@ This section briefly describes the different frameworks and APIs that are a subj
 \subsection{CUDA}
 Released in 2007, CUDA developed by Nvidia was the first major GPGPU framework to be released. It aims to make the parallelization of a problem more manageable by providing an easy to work with API. One downside of CUDA is that is has a weak portability and can only be run on Nvidia GPU's. Despite this limitation it is a very popular framework among GPGPU developers, see figure \ref{fig:GoogleTrendsPopularity} \cite{AboutCuda}.  The installation procedure is very simple, all that is needed is a CUDA development toolkit which can be downloaded from Nvidia's webpage.
 
-CUDA is an extension of the C/C++ language, allowing the developer to write both device and host code in a C/C++ like fashion. To run and compile CUDA, a custom compiler is used, NVCC. To define what parts of the code that should be run on the host and the device the keywords \lstinline{__host__} and \lstinline{__device__}, although the \lstinline{__host__} keyword is rarely seen since it is specified per default. To specify that the next block of code is a kernel the keyword \lstinline{__global__} is used.
+CUDA is an extension of the C/C++ language, allowing the developer to write both device and host code in a C/C++ like fashion. To run and compile CUDA, a custom compiler is used, NVCC. To define what parts of the code that should be run on the host and the device the keywords \lstinline{__host__} and \lstinline{__device__} is used, although the \lstinline{__host__} keyword is rarely seen since it is specified per default. To specify that the next block of code is a kernel the keyword \lstinline{__global__} is used.
 Each thread in a CUDA program is organized in a block, which in turn is organized in a grid, see figure \ref{fig:CUDAGridBlockThreads}. When launching a kernel, arguments specifying the grid and block-dimension must be supplied. There exists a few different types of memory in CUDA, these memory types are listed in table \ref{tab:CUDAMemoryTypes} 
 
 A very simple CUDA kernel that performs a vector addition can be seen in Listing \ref{lst:cudaVectorAdd}.
@@ -85,6 +85,7 @@ A very simple CUDA kernel that performs a vector addition can be seen in Listing
 
     \begin{tabularx}{\textwidth}{ |X|X|X|X|X| }
       \hline
+      \rowcolor{gray}
       \textbf{Memory} &  \textbf{Location} &  \textbf{Cached} &    \textbf{Access} &    \textbf{Scope} \\ \hline 
       \textbf{Register} & On-chip   & Cached    & Access        & Thread \\ \hline 
       \textbf{Local}    & Off-chip  & No        & Read/write    & Thread \\ \hline 
@@ -116,7 +117,7 @@ __global__ void add(int *out, const int *in_a, const int *in_b)
 
 
 \subsection{OpenCL} \label{sec:OpenCLTheory}
-For a couple of years, CUDA was the only framework developed for the sole purpose of GPGPU and Nvidia had no competitors on the GPGPU front. That is until Apple took the initiative to develop a competitor, and backed by a lot of major companies, OpenCL was developed. OpenCL sought to offer a more portable and wide variety of parallel devices, and OpenCL offers the ability to run parallel implementations on other devices than just GPU's such as FPGA's and ARM devices. OpenCL is an open standard, and implementations are available from Apple, AMD, Intel, Nvidia and more \cite{KhronosOpenCL}. Because of this, the portability of OpenCL is good, and it can be run on most systems, provided a parallel hardware is present in the system. Since there are multiple implementations of OpenCL, the setup procedure differs, but OpenCL is usually provided by the manufacturers drivers.
+For a couple of years, CUDA was the only framework developed for the sole purpose of GPGPU and Nvidia had no competitors on the GPGPU front. That is until Apple took the initiative to develop a competitor, and backed by a lot of major companies, OpenCL was developed. OpenCL sought to offer a more portable and wide variety of parallel devices, and OpenCL offers the ability to run parallel implementations on other devices than just GPU's such as FPGA's and ARM devices. OpenCL is an open standard, and implementations are available from Apple, AMD, Intel, Nvidia and more \cite{KhronosOpenCL}. Because of this, the portability of OpenCL is good, and it can be run on most systems, provided a parallel hardware is present. Since there are multiple implementations of OpenCL, the setup procedure differs, but OpenCL is usually provided by the manufacturers drivers.
 
 The syntax in OpenCL is quite similar to that of CUDA although some differences exist. Although the hierarchy model is very similar, OpenCL uses different terms for these, as well as the memory types. These are listed in table \ref{tab:OpenCLvsCUDA}. Similar to CUDA, OpenCL uses keywords, the keyword that specifies a kernel is \lstinline{__kernel}. Data that resides in the global and local memory are specified using the \lstinline{__global} and \lstinline{__local} keywords.
 Whilst CUDA automatically selects a device of the available hardware on the system, OpenCL needs to know what device to run on. Thus the setup procedure differs slightly from the procedure described in section \ref{sec:GPUTheory}. Before copying data and executing the kernel, a OpenCL program first have to do the following steps before doing the steps described in \ref{sec:GPUTheory}:
@@ -145,11 +146,12 @@ __kernel void vectorAddition(__global read_only int* vector1,
 \begin{table}[!h]
     \begin{tabularx}{\textwidth}{ |X|X| }
       \hline
+      \rowcolor{gray}
       \textbf{OpenCL}   &  \textbf{CUDA} \\ \hline 
-        Compute Unit    & Multiprocessor (SM)
-        Work item       & Thread
-        Work group      & Block
-        Local memory    & Shared memory
+        Compute Unit    & Multiprocessor (SM) \\ \hline
+        Work item       & Thread \\ \hline
+        Work group      & Block \\ \hline
+        Local memory    & Shared memory \\ \hline
         Private memory  & Registers \\ \hline
     \end{tabularx}
 \caption{\label{tab:OpenCLvsCUDA} CUDA vs OpenCL terms}
@@ -159,9 +161,9 @@ __kernel void vectorAddition(__global read_only int* vector1,
 
 
 \subsection{DirectCompute}
-Initially released with the DirectX 11 API, DirectCompute is Microsoft's technology for GPGPU, and unlike CUDA or OpenCL which relies on launching kernels, DirectCompute runs a CS as a part of the graphics pipeline. Although released with the DirectX 11 API, DirectCompute runs on GPUs that use either DirectX 10 or 11 \cite{NVidiaDirectCompute}. Since DirectCompute is a part of the DirectX API, no addition additional setup is required, but DirectCompute can only be run on Windows PCs that have a support DirectX version.
+Initially released with the DirectX 11 API, DirectCompute is Microsoft's technology for GPGPU, and unlike CUDA or OpenCL which relies on launching kernels, DirectCompute runs a CS as a part of the graphics pipeline. Although released with the DirectX 11 API, DirectCompute runs on GPUs that use either DirectX 10 or 11 \cite{NVidiaDirectCompute}. Since DirectCompute is a part of the DirectX API, no additional setup is required, but DirectCompute can only be run on Windows PCs that have a support DirectX version.
 
-Since DirectCompute is not a framework, but a API of the DirectX suite, it is quite different from CUDA or OpenCL. All of the computing in DirectCompute is done on a CS, which would be the equivalent to a kernel in CUDA or OpenCL. The setup process is quite similar to the one described in section \ref{sec:GPUTheory}, but uses the traditional graphics way of copying data between the host and the device, buffers, which are copied to the CS before the CS is run. The CS is written in the high-level shading language (HLSL), developed by Microsoft and a simple CS that performs a vector addition (using a structured buffer) can be seen in listing \ref{lst:DirectComputeVectorAdd}.
+Since DirectCompute is not a framework, but a API of the DirectX suite and uses the concept of CS to perform GPGPU calculations, it is quite different from CUDA or OpenCL. All of the computing in DirectCompute is done on a CS, which would be the equivalent to a kernel in CUDA or OpenCL. The setup process is quite similar to the one described in section \ref{sec:GPUTheory}, but uses the traditional graphics way of copying data between the host and the device using buffers, which are copied to the CS before the CS is run. The CS is written in the high-level shading language (HLSL) also developed by Microsoft, and a simple CS that performs a vector addition (using a structured buffer) can be seen in listing \ref{lst:DirectComputeVectorAdd}.
 
 \begin{lstlisting}[caption={DirectCompute vector addition CS}, label={lst:DirectComputeVectorAdd}, frame=single] 
 struct BufType
@@ -188,7 +190,7 @@ void CSMain( uint3 DTid : SV_DispatchThreadID )
 \subsection{SkePU 2}
 SkePU is a high-level skeleton programming framework originally developed by Johan Enmyren and Christoph W. Kessler at Linköping University \cite{enmyren2010skepu}. The framework aims to simplify the parallelization of a implementation by using skeleton functions such as map and reduce which are common parallel algorithms, which makes SkePU very different from the previously mentioned frameworks. When using SkePU, the developer specifies what backend the implementation should run. The currently available backends are sequential C, OpenMP, OpenCL, CUDA, and multi-GPU OpenCL and CUDA \cite{LiUSkePU}. The major revision SkePU 2 was designed by August Ernstsson, Lu Li and Christoph Kessler and is today maintained by August Ernstsson. Further mentions of SkePU will refer to SkePU 2.
 
-Since SkePU is not a GPGPU framework, but a skeleton framework, it is different from the previously discussed CUDA, OpenCL and DirectCompute in terms that it don't involves writing a kernel. Although the setup procedure is quite complicated, once installed it is very portable since it is able to run with most GPU's, depending on the selected backend. As presented in the previous sections, a SkePU vector addition program is supplied in listing \ref{lst:SkePUVectorAdd}
+Since SkePU is not a GPGPU framework, but a skeleton framework, it is different from the previously discussed CUDA, OpenCL and DirectCompute in terms that it don't involves writing a kernel. Although the setup procedure is quite complicated, once installed it is very portable since it is able to run with most GPU's, depending on the selected backend. As presented in the previous sections, a SkePU vector addition program using the Map-skeleton is supplied in listing \ref{lst:SkePUVectorAdd}
 
 \begin{lstlisting}[caption={SkePU vector addition}, label={lst:SkePUVectorAdd}, frame=single] 
 
@@ -224,7 +226,7 @@ int main(){
 In this section, algorithms that are suitable for a benchmarking application is briefly explained and discussed. The discussed algorithms are compared, and a motivation of the selected algorithm are given which is explained and discussed further in section \ref{sec:TheoryNBody}.
 
 \subsection{Parallel QuickSort}
-A popular sequential algorithm, the QuickSort algorithm invented by C.A.R  Hoare, is a recursive divide-and-conquer based sorting algorithm \cite{hoare1962quicksort}. The algorithm has a time complexity of $O(n \ log \ n)$ in the best case, a worst case complexity of $O(n^2)$, and an average run time of $O(n \ log \ n)$. A pivot element $A[q]$ is selected from the array. The array is then partitioned into two subarrays $A[p...q-1]$ such that all elements are less than $A[q]$, and $A[q+1...r]$ such that all elements are greater than or equal to $A[q]$. After this partitioning step, the pivot are in its correct step. This procedure are then applied recursively to the subarrays until the entire array is sorted. Pseudocode for the algorithm can be seen in Algorithm \ref{alg:quicksort}. The comparison part of the algorithm is well suited for a parallel implementation, but due to the data dependency, parallelizing the partitioning stage is a more difficult task. Some implementations and papers descring how the algorithm can be parallelized do however exist \cite{cederman2009gpu}\cite{sanders1997efficient}\cite{chen2009fast}.
+As a popular sequential sorting algorithm, the QuickSort algorithm invented by C.A.R  Hoare, is a recursive divide-and-conquer based sorting algorithm \cite{hoare1962quicksort}. The algorithm has a time complexity of $O(n \ log \ n)$ in the best case, a worst case complexity of $O(n^2)$, and an average run time of $O(n \ log \ n)$. A pivot element $A[q]$ is selected from the array to be sorted. The array is then partitioned into two subarrays $A[p...q-1]$ such that all elements are less than $A[q]$, and $A[q+1...r]$ such that all elements are greater than or equal to $A[q]$. After this partitioning step, the pivot are in its correct step. This procedure are then applied recursively to the subarrays until the entire array is sorted. Pseudocode for the algorithm can be seen in Algorithm \ref{alg:quicksort}. The comparison part of the algorithm is well suited for a parallel implementation, but due to the data dependency of the algorithm, parallelizing the partitioning stage is a more difficult task. Some implementations and papers describng how the algorithm can be parallelized do however exist \cite{cederman2009gpu}\cite{sanders1997efficient}\cite{chen2009fast}.
 
 \begin{algorithm}
     \caption{Quicksort pseudocode}
@@ -257,7 +259,7 @@ A popular sequential algorithm, the QuickSort algorithm invented by C.A.R  Hoare
 A parallel implementation of the Quicksort algorithm would be an interesting algorithm to use for a benchmark application of this degree. The performance of an parallel implementation could be compared to the classical sequential QuickSort algorithm for varying problem sizes, although due of the triviality of the implementation this algorithm was discarded.
 
 \subsection{Distance transform}
-First presented by C.Green of Valve Softworks, a method which allows improved rendering of glyphs composed of curved and linear elements was proposed \cite{green2007improved}. The technique works by generating a distance transform (DT) from a high-resolution texture by measuring the distance between a background texel to the closest foreground texture. The distance field is then stored into a channel of a lower-resolution texture, resulting in a texture with a arbitrary resolution, whilst occupying a small amount of video random access memory (VRAM). This low-resolution texture can then be rendered by using alpha-testing and alpha-thresholding features of modern GPU's with great results as illustrated in figure \ref{fig:GreensDT}. 
+First presented by C.Green of Valve Softworks, a method which allows improved rendering of glyphs composed of curved and linear elements was proposed \cite{green2007improved}. The technique works by generating a distance transform (DT) from a high-resolution texture by measuring the distance between a background texel to the closest foreground texel. The distance field is then stored into a channel of a lower-resolution texture, resulting in a texture with a arbitrary resolution, whilst occupying a small amount of video random access memory (VRAM). This low-resolution texture can then be rendered by using alpha-testing and alpha-thresholding features of modern GPU's with great results as illustrated in figure \ref{fig:GreensDT}. 
 
 \begin{figure}[!h]
     \centering
@@ -292,7 +294,7 @@ The final proposed algorithm is the N-Body problem. Although the base implementa
 
 \subsection{Choice of algorithm}
 
-The choice of algorithm to be implemented and used to evaluate the different frameworks in this work was motivated to be complex enough so that a fair comparison between the frameworks could be made. If the algorithm was to trivial or embarrassingly parallel, the risk would be that framework specific features could be less utilized, and it would be difficult to compare the frameworks in this aspect. It would also raise the risk where the framework-part of the implementation is to small for a fair comparison to be made. 
+The choice of algorithm to be implemented and used to evaluate the different frameworks in this work was motivated to be complex enough so that a fair comparison between the frameworks could be made. If the algorithm was too trivial or embarrassingly parallel, the risk would be that framework specific features could be less utilized, and it would be difficult to compare the frameworks in this aspect. It would also raise the risk where the framework-part of the implementation is to small for a fair comparison to be made. 
 
 With this in mind, the algorithm had to be complex enough so that a fair comparison could be made, but not to complex so that the algorithm couldn't be implemented in the given amount of time. Another motivation of the choice of algorithm was that it would include more complex data structures, and not just lists like arrays or vectors. 
 
@@ -323,7 +325,7 @@ Newton's second law states that mass times acceleration $m_i \frac{d^2 \boldsymb
     F_i = m_i\frac{d^2 \boldsymbol p_i}{dt^2} = \sum_{j=1, j\neq i}^n \frac{G m_i m_j (\boldsymbol p_j - \boldsymbol p_i)}{|| \boldsymbol p_j - \boldsymbol p_i|| ^3}
 \end{equation}
 
-Equation \ref{eq:totGravForce} has be be applied to each point mass $m_i$ in each timestep of the simulation, and thus have to be compared to all other $n-1$ point masses in the system resulting in a time complexity of $O(n^2)$. Pseudo-code of this \textit{all-pairs} n-body calculation using equation \ref{eq:totGravForce} can be seen in algorithm \ref{alg:allpairspseudocode}. By analyzing equation \ref{eq:totGravForce} and the pseudocode given in \ref{alg:allpairspseudocode}, we can conclude that there are two parts of the algorithm that can be parallelized. Using $p=n$ processors, the outer for-loop in the main procedure can be parallelized, resulting in each particles body-body interaction is calculated by a single process. Once the particles velocities have been updated, the position updating is embarrassingly parallel.
+Equation \ref{eq:totGravForce} has be be applied to each point mass $m_i$ in each timestep of the simulation, and thus have to be compared to all other $n-1$ point masses in the system resulting in a time complexity of $O(n^2)$. Pseudo-code of this \textit{all-pairs} n-body calculation using equation \ref{eq:totGravForce} can be seen in algorithm \ref{alg:allpairspseudocode}. By analyzing equation \ref{eq:totGravForce} and the pseudocode given in \ref{alg:allpairspseudocode}, we can conclude that there are two parts of the algorithm that can be parallelized. Using $p=n$ processors, the outer for-loop in the main procedure can be parallelized, resulting in each particles body-body interaction is calculated by a single process. Once the particles velocities have been updated, the position updating is embarrassingly parallel using a suitable integration scheme, e.g Runge-Kutta or Euler integration.
 
 \begin{algorithm}
     \caption{All pars N-body pseudocode}
@@ -382,10 +384,10 @@ The tree is then reconstructed at every timestep to avoid ambiguity and tangling
 
 \begin{enumerate}
     \item Compute bounding box around all bodies
-    \item Build hierarchical decomposition by inserting each body into octree
+    \item Build hierarchical decomposition by inserting each body into the octree
     \item Summarize body information in each internal octree node
     \item Approximately sort the bodies by spatial distance
-    \item Compute forces acting on each body with help of octree
+    \item Compute forces acting on each body with help of the octree
     \item Update body positions and velocities
 \end{enumerate}
 
