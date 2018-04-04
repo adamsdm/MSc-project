@@ -18,10 +18,10 @@ seq_tTot = seq_data(:,6);
 
 figure(1)
 hold on;
-plot(noBodies, cl_tTot);
-plot(noBodies, cu_tTot);
-plot(noBodies, dc_tTot);
-plot(noBodies, seq_tTot);
+plot(noBodies, cl_tTot, 'r');
+plot(noBodies, cu_tTot, 'g');
+plot(noBodies, dc_tTot, 'b');
+plot(noBodies, seq_tTot, 'c');
 
 % Adjust the axis limits
 axis([1024 20*1024 0 400])
