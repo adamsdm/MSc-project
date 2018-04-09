@@ -66,7 +66,7 @@ Even though other optimization algorithms exists for the N-Body problem, only th
 This section describes previous research on the subject, both in terms of performance comparisons, but also what previous work and research has been done in terms of the N-Body problem as well as comparisons between the discussed frameworks.
 
 
-\subsection{Framework comparison}
+\subsection{Framework comparison} \label{subsec:frameworkComparison}
 In 2016 a similar master thesis was performed by T. Sörman where the frameworks CUDA, OpenCL, DirectCompute and OpenGL was compared as well as how the GPGPU implementations performed compared to an multithreaded implementation in OpenMP. \cite{Torbjorn}. Also performed at MindRoad AB, the thesis compares the different frameworks primarily in terms of performance, unlike this thesis which puts more focus on the portability, code complexity and features of the different frameworks. This work will also evaluate the skeleton programming framework SkePU which was not included in Sörmans research \cite{enmyren2010skepu}. 
 
 The algorithm Sörman evaluated is a parallel implementation of the Fast Fourier Transform (FFT), and the result showed that the fastest framework, CUDA, was twice as fast as the slowest, OpenCL, and that the compute shader based frameworks OpenGL and DirectX, are competitive with both CUDA and DirectX in terms of performance.

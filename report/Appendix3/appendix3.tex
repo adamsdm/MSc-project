@@ -315,12 +315,12 @@ int main()
 	// Retrieve results
 	{
 		// Retrieve positions
-		ID3D11Buffer* posDebugbuf = CreateAndCopyToDebugBuf(device, context, b_out);
+		ID3D11Buffer* resDebugbuf = CreateAndCopyToDebugBuf(device, context, b_out);
 		D3D11_MAPPED_SUBRESOURCE mappedRes;
 
-		context->Map(posDebugbuf, 0, D3D11_MAP_READ, 0, &mappedRes);
+		context->Map(resDebugbuf, 0, D3D11_MAP_READ, 0, &mappedRes);
 		memcpy(i_out, (int*)mappedRes.pData, NUM_ELEMENTS*sizeof(int));
-		context->Unmap(posDebugbuf, 0);
+		context->Unmap(resDebugbuf, 0);
 
 	}
 

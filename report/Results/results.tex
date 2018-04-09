@@ -77,7 +77,7 @@ The total execution time of the frameworks are presented in figure \ref{fig:Grap
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Results/Figs/TotalExecutionTime.png}
+    \includegraphics[width=\textwidth]{Results/Figs/TotExecTime.eps}
     \caption{Total execution time}
     \label{fig:GraphTotExecTime}
 \end{figure}
@@ -86,7 +86,7 @@ The part of the algorithm that is executed on the device, i.e. the force calcula
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Results/Figs/GPUStepExecutionTime.png}
+    \includegraphics[width=\textwidth]{Results/Figs/GPUStepExecutionTime.eps}
     \caption{Execution time of the GPGPU step}
     \label{fig:GPUStepExecTime}
 \end{figure}
@@ -99,47 +99,58 @@ To be able to compare what parts of the algorithm that was the most time consumi
     \item \textbf{Step} - The time it takes to calculate the forces and update the positions. Executed on the GPU (apart from the sequential implementation).
 \end{itemize}
 
-The measured execution times for these parts are presented in figure \ref{fig:CUDAExecTime}, \ref{fig:OpenCLExecTime}, \ref{fig:DirectComputeExecTime} and \ref{fig:SeqExecTime}.
+The measured execution times for these parts are presented in figure \ref{fig:CUDAExecTime}, \ref{fig:OpenCLExecTime}, \ref{fig:DirectComputeExecTime} and \ref{fig:SeqExecTime}. The sequential implementation has no need to flatten the tree every timestep as discussed in section \ref{subsec:OctreeConstruction}, why this is extradited from the graph. 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{Results/Figs/CUDABarChart.png}
+    \includegraphics[width=.8\textwidth]{Results/Figs/CUDABarChart.eps}
     \caption{CUDA execution time}
     \label{fig:CUDAExecTime}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{Results/Figs/OpenCLBarChart.png}
+    \includegraphics[width=.8\textwidth]{Results/Figs/OpenCLBarChart.eps}
     \caption{OpenCL execution time}
     \label{fig:OpenCLExecTime}
 \end{figure}
 
 \begin{figure}[H]
     \centering  
-    \includegraphics[width=.8\textwidth]{Results/Figs/DirectComputeBarChart.png}
+    \includegraphics[width=.8\textwidth]{Results/Figs/DirectComputeBarChart.eps}
     \caption{DirectCompute execution time}
     \label{fig:DirectComputeExecTime}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{Results/Figs/SequentialBarChart.png}
+    \includegraphics[width=.8\textwidth]{Results/Figs/SequentialBarChart.eps}
     \caption{Sequential execution time}
     \label{fig:SeqExecTime}
 \end{figure}
 
 
-To be able to compare the performance difference when using buffers containing data structures and buffers containing class objects in CUDA, the execution time for both these cases was measured, the result is presented in figure \ref{fig:GraphCUDAStructVsClass}.
+To be able to compare the performance difference when using buffers containing data structures and buffers containing class objects in CUDA, the execution time for both these cases was measured, the result is presented in figure \ref{fig:GraphCUDAStructVsClass}. Furthermore to be able to compare the performance for CUDA when using recursion in the force calculation as discussed in section \ref{sec:CUDAImplementation}, the execution time for this was measured and is presented in figure \ref{fig:CUDARecursivePerformance}. The default stack size in CUDA is only 1024 bytes and the recursive force calculation gets deep. The stack size was thus increased to 2048 bytes when testing the recursive implementation to prevent stack overflow from occurring.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Results/Figs/CUDAStructVSClass.png}
+    \includegraphics[width=0.8\textwidth]{Results/Figs/CUDAStructVSClass.eps}
     \caption{Execution time, CUDA Struct vs Class object buffers}
     \label{fig:GraphCUDAStructVsClass}
 \end{figure}
 
-\section{Features}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{Results/Figs/CUDARecIt.eps}
+    \caption{Execution time, CUDA recursive force calculation vs iterative force calculation}
+    \label{fig:CUDARecursivePerformance}
+\end{figure}
+
+
+
+
+
+\section{Features} \label{sec:ResultFeatures}
 
 The features of the various frameworks given the specifications that are listed in table \ref{tab:SystemSpecs} are listed in table \ref{tab:FrameworkFeatures} \cite{CudaDOCS}\cite{DCGuide}\cite{DCGuideNvidia}. SkePU is unlisted since the features depends on the choice of backend. 
 
@@ -212,22 +223,25 @@ The market share of the most popular desktop and laptop system operating systems
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{Results/Figs/OSMarketShare.png}
+    \includegraphics[width=.5\textwidth]{Results/Figs/OSMarketShare.eps}
     \caption{Operating system market share (Q1 2018)}
     \label{fig:OSMarketShare}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{Results/Figs/GPUMarketShare.png}
+    \includegraphics[width=.5\textwidth]{Results/Figs/GPUMarketShare.eps}
     \caption{AMD and Nvidia market share (Q4 2017)}
     \label{fig:GPUMarketShare}
 \end{figure}
 
-\section{Code complexity}
 
-Appendix \ref{appendix:CUDAVecAdd}, \ref{appendix:OpenCLVecAdd}, \ref{appendix:DirectComputeVecAdd} and \ref{appendix:SkepuVecAdd} lists full working code examples which performs a simple vector addition according to 
-$\boldsymbol A + \boldsymbol B = \boldsymbol C = (a_1 + b_1, a_2 + b_2, ... , a_n +b_n)$ in CUDA, OpenCL, DirectCompute and SkePU accordingly. To measure the code complexity, these implementations was tested using the freeware software SourceMonitor \cite{SourceMonitor}. The results of these measurements are presented in table \ref{tab:VecAddMetrics}.
+
+
+\section{Complexity} \label{sec:ResultComplexity}
+
+Appendix \ref{appendix:CUDAVecAdd}, \ref{appendix:OpenCLVecAdd}, \ref{appendix:DirectComputeVecAdd} and \ref{appendix:SkepuVecAdd} lists full code examples which performs a simple vector addition according to 
+$\boldsymbol A + \boldsymbol B = \boldsymbol C = (a_1 + b_1, a_2 + b_2, ... , a_n +b_n)$ in CUDA, OpenCL, DirectCompute and SkePU accordingly. To measure the complexity of the frameworks, these implementations was tested using the freeware software SourceMonitor \cite{SourceMonitor} which measures the cyclomatic complexity, lines of code (not counting comments or empty lines), and the control flow graph depth. This gives a more intuitive insight of the complexity of the discussed frameworks than if the N-body implementations was to be measured. The results of the measurements are presented in table \ref{tab:VecAddMetrics}.
 
 
 \begin{table}[H] 
@@ -236,7 +250,7 @@ $\boldsymbol A + \boldsymbol B = \boldsymbol C = (a_1 + b_1, a_2 + b_2, ... , a_
       \hline
       \rowcolor{gray}
       \multicolumn{2}{|c|}{\textbf{CUDA Vector Addition}}\\ \hline
-      \textbf{Lines}            & 45 \\ \hline
+      \textbf{Lines}                    & 45 \\ \hline
       \textbf{Statements}               & 38 \\ \hline
       \textbf{Max Complexity}           & 4 \\ \hline
       \textbf{Avg. Complexity}          & 0.97 \\ \hline
